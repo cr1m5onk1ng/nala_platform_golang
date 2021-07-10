@@ -9,7 +9,7 @@ All the code for the backend makes use of the awesome Go programming language [G
 <a href="https://golang.org/"><img src="https://mpng.subpng.com/20180430/clw/kisspng-go-programming-language-computer-programming-progr-programming-language-5ae6e800efbb03.589382971525082112982.jpg" width="200"/></a>
 <br>
 
-In combination with the lightning fast [fiber](https://github.com/gofiber/fiber) framework,
+Since I'm already somewhat familiar with Express.js, I opted to use the lightning fast [fiber](https://github.com/gofiber/fiber) framework for the REST endpoints, since its workflow is very similar to that of Express.js.
 
 The prototype makes use of good old reliable Postgres, although the actual platform will use a mix of SQL for relational data and noSQL for metadata
 
@@ -28,6 +28,11 @@ The prototype makes use of good old reliable Postgres, although the actual platf
 - [ ] React.js frontend prototype
 - [ ] Search engine service implementation
 
+
+### Resources that helped me get started
+[golang with postgres](https://dev.to/techschoolguru/series/7172)
+
+[fiber REST API](https://dev.to/koddr/build-a-restful-api-on-go-fiber-postgresql-jwt-and-swagger-docs-in-isolated-docker-containers-475j#create-validators-for-a-model-fields) 
 
 ## Author
 

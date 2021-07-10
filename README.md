@@ -1,4 +1,4 @@
-# Text Similarity with Contextualised Embeddings
+# TNala Platform 
 
 This repository contains a prototype version of a platform aimed to make finding and discussing good web resources for language learning easier and more fun.
 

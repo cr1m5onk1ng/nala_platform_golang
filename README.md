@@ -12,7 +12,8 @@ All the code for the backend makes use of the awesome Go programming language [G
 In combination with the lightning fast [fiber](https://github.com/gofiber/fiber) framework,
 
 The prototype makes use of good old reliable Postgres, although the actual platform will use a mix of SQL for relational data and noSQL for metadata
-<a href="https://www.postgresql.org/"><img src="https://icon2.cleanpng.com/20180315/ifq/kisspng-postgresql-logo-computer-software-database-open-source-vector-images-5aaa26e1a38cf4.7370214515211005136699.jpg" width="200"/></a>
+
+<a href="https://www.postgresql.org/"><img src="https://icon2.cleanpng.com/20180315/ifq/kisspng-postgresql-logo-computer-software-database-open-source-vector-images-5aaa26e1a38cf4.7370214515211005136699.jpg" width="200" height="200"/></a>
 <br>
 
 ## TODO

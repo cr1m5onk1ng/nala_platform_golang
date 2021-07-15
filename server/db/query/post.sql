@@ -3,32 +3,42 @@ SELECT * FROM user_post
 WHERE id = $1;
 
 -- name: GetPostsByLanguage :many
-SELECT * FROM user_post AS p
+SELECT p.* FROM user_post AS p
 JOIN resources AS r
 ON p.resource_id = r.id
-WHERE r.language = $1;
+WHERE r.language = $1
+ORDER BY p.resource_id
+LIMIT $2 OFFSET $3;
 
 -- name: GetPostsByUser :many
 SELECT * FROM user_post
-WHERE user_id = $1;
+WHERE user_id = $1
+ORDER BY user_id
+LIMIT $2 OFFSET $3;
 
 -- name: GetPostsByCategory :many
-SELECT * FROM user_post AS p
+SELECT p.* FROM user_post AS p
 JOIN resources AS r
 ON p.resource_id = r.id
-WHERE r.category = $1;
+WHERE r.category = $1
+ORDER BY p.resource_id
+LIMIT $2 OFFSET $3;
 
 -- name: GetPostsByDifficulty :many
-SELECT * FROM user_post AS p
+SELECT p.* FROM user_post AS p
 JOIN resources AS r
 ON p.resource_id = r.id
-WHERE r.difficulty = $1;
+WHERE r.difficulty = $1
+ORDER BY p.resource_id
+LIMIT $2 OFFSET $3;
 
 -- name: GetPostsByMediaType :many
-SELECT * FROM user_post AS p
+SELECT p.* FROM user_post AS p
 JOIN resources AS r
 ON p.resource_id = r.id
-WHERE r.media_type = $1;
+WHERE r.media_type = $1
+ORDER BY p.resource_id
+LIMIT $2 OFFSET $3;
 
 -- name: AddPost :one
 INSERT INTO user_post (

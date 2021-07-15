@@ -6,7 +6,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"time"
 )
 
 const addPost = `-- name: AddPost :one
@@ -150,40 +149,29 @@ func (q *Queries) GetPostTags(ctx context.Context, postID string) ([]Tag, error)
 }
 
 const getPostsByCategory = `-- name: GetPostsByCategory :many
-SELECT p.id, user_id, resource_id, post_time, post_title, post_description, r.id, url, language, difficulty, title, description, media_type, category, thumbnail_url, inserted_at FROM user_post AS p
+SELECT p.id, p.user_id, p.resource_id, p.post_time, p.post_title, p.post_description FROM user_post AS p
 JOIN resources AS r
 ON p.resource_id = r.id
 WHERE r.category = $1
+ORDER BY p.resource_id
+LIMIT $2 OFFSET $3
 `
 
-type GetPostsByCategoryRow struct {
-	ID              string         `json:"id"`
-	UserID          string         `json:"user_id"`
-	ResourceID      int64          `json:"resource_id"`
-	PostTime        time.Time      `json:"post_time"`
-	PostTitle       string         `json:"post_title"`
-	PostDescription sql.NullString `json:"post_description"`
-	ID_2            int64          `json:"id_2"`
-	Url             string         `json:"url"`
-	Language        string         `json:"language"`
-	Difficulty      sql.NullString `json:"difficulty"`
-	Title           string         `json:"title"`
-	Description     sql.NullString `json:"description"`
-	MediaType       sql.NullString `json:"media_type"`
-	Category        string         `json:"category"`
-	ThumbnailUrl    sql.NullString `json:"thumbnail_url"`
-	InsertedAt      time.Time      `json:"inserted_at"`
+type GetPostsByCategoryParams struct {
+	Category string `json:"category"`
+	Limit    int32  `json:"limit"`
+	Offset   int32  `json:"offset"`
 }
 
-func (q *Queries) GetPostsByCategory(ctx context.Context, category string) ([]GetPostsByCategoryRow, error) {
-	rows, err := q.query(ctx, q.getPostsByCategoryStmt, getPostsByCategory, category)
+func (q *Queries) GetPostsByCategory(ctx context.Context, arg GetPostsByCategoryParams) ([]UserPost, error) {
+	rows, err := q.query(ctx, q.getPostsByCategoryStmt, getPostsByCategory, arg.Category, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetPostsByCategoryRow{}
+	items := []UserPost{}
 	for rows.Next() {
-		var i GetPostsByCategoryRow
+		var i UserPost
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
@@ -191,16 +179,6 @@ func (q *Queries) GetPostsByCategory(ctx context.Context, category string) ([]Ge
 			&i.PostTime,
 			&i.PostTitle,
 			&i.PostDescription,
-			&i.ID_2,
-			&i.Url,
-			&i.Language,
-			&i.Difficulty,
-			&i.Title,
-			&i.Description,
-			&i.MediaType,
-			&i.Category,
-			&i.ThumbnailUrl,
-			&i.InsertedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -216,40 +194,29 @@ func (q *Queries) GetPostsByCategory(ctx context.Context, category string) ([]Ge
 }
 
 const getPostsByDifficulty = `-- name: GetPostsByDifficulty :many
-SELECT p.id, user_id, resource_id, post_time, post_title, post_description, r.id, url, language, difficulty, title, description, media_type, category, thumbnail_url, inserted_at FROM user_post AS p
+SELECT p.id, p.user_id, p.resource_id, p.post_time, p.post_title, p.post_description FROM user_post AS p
 JOIN resources AS r
 ON p.resource_id = r.id
 WHERE r.difficulty = $1
+ORDER BY p.resource_id
+LIMIT $2 OFFSET $3
 `
 
-type GetPostsByDifficultyRow struct {
-	ID              string         `json:"id"`
-	UserID          string         `json:"user_id"`
-	ResourceID      int64          `json:"resource_id"`
-	PostTime        time.Time      `json:"post_time"`
-	PostTitle       string         `json:"post_title"`
-	PostDescription sql.NullString `json:"post_description"`
-	ID_2            int64          `json:"id_2"`
-	Url             string         `json:"url"`
-	Language        string         `json:"language"`
-	Difficulty      sql.NullString `json:"difficulty"`
-	Title           string         `json:"title"`
-	Description     sql.NullString `json:"description"`
-	MediaType       sql.NullString `json:"media_type"`
-	Category        string         `json:"category"`
-	ThumbnailUrl    sql.NullString `json:"thumbnail_url"`
-	InsertedAt      time.Time      `json:"inserted_at"`
+type GetPostsByDifficultyParams struct {
+	Difficulty sql.NullString `json:"difficulty"`
+	Limit      int32          `json:"limit"`
+	Offset     int32          `json:"offset"`
 }
 
-func (q *Queries) GetPostsByDifficulty(ctx context.Context, difficulty sql.NullString) ([]GetPostsByDifficultyRow, error) {
-	rows, err := q.query(ctx, q.getPostsByDifficultyStmt, getPostsByDifficulty, difficulty)
+func (q *Queries) GetPostsByDifficulty(ctx context.Context, arg GetPostsByDifficultyParams) ([]UserPost, error) {
+	rows, err := q.query(ctx, q.getPostsByDifficultyStmt, getPostsByDifficulty, arg.Difficulty, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetPostsByDifficultyRow{}
+	items := []UserPost{}
 	for rows.Next() {
-		var i GetPostsByDifficultyRow
+		var i UserPost
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
@@ -257,16 +224,6 @@ func (q *Queries) GetPostsByDifficulty(ctx context.Context, difficulty sql.NullS
 			&i.PostTime,
 			&i.PostTitle,
 			&i.PostDescription,
-			&i.ID_2,
-			&i.Url,
-			&i.Language,
-			&i.Difficulty,
-			&i.Title,
-			&i.Description,
-			&i.MediaType,
-			&i.Category,
-			&i.ThumbnailUrl,
-			&i.InsertedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -282,40 +239,29 @@ func (q *Queries) GetPostsByDifficulty(ctx context.Context, difficulty sql.NullS
 }
 
 const getPostsByLanguage = `-- name: GetPostsByLanguage :many
-SELECT p.id, user_id, resource_id, post_time, post_title, post_description, r.id, url, language, difficulty, title, description, media_type, category, thumbnail_url, inserted_at FROM user_post AS p
+SELECT p.id, p.user_id, p.resource_id, p.post_time, p.post_title, p.post_description FROM user_post AS p
 JOIN resources AS r
 ON p.resource_id = r.id
 WHERE r.language = $1
+ORDER BY p.resource_id
+LIMIT $2 OFFSET $3
 `
 
-type GetPostsByLanguageRow struct {
-	ID              string         `json:"id"`
-	UserID          string         `json:"user_id"`
-	ResourceID      int64          `json:"resource_id"`
-	PostTime        time.Time      `json:"post_time"`
-	PostTitle       string         `json:"post_title"`
-	PostDescription sql.NullString `json:"post_description"`
-	ID_2            int64          `json:"id_2"`
-	Url             string         `json:"url"`
-	Language        string         `json:"language"`
-	Difficulty      sql.NullString `json:"difficulty"`
-	Title           string         `json:"title"`
-	Description     sql.NullString `json:"description"`
-	MediaType       sql.NullString `json:"media_type"`
-	Category        string         `json:"category"`
-	ThumbnailUrl    sql.NullString `json:"thumbnail_url"`
-	InsertedAt      time.Time      `json:"inserted_at"`
+type GetPostsByLanguageParams struct {
+	Language string `json:"language"`
+	Limit    int32  `json:"limit"`
+	Offset   int32  `json:"offset"`
 }
 
-func (q *Queries) GetPostsByLanguage(ctx context.Context, language string) ([]GetPostsByLanguageRow, error) {
-	rows, err := q.query(ctx, q.getPostsByLanguageStmt, getPostsByLanguage, language)
+func (q *Queries) GetPostsByLanguage(ctx context.Context, arg GetPostsByLanguageParams) ([]UserPost, error) {
+	rows, err := q.query(ctx, q.getPostsByLanguageStmt, getPostsByLanguage, arg.Language, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetPostsByLanguageRow{}
+	items := []UserPost{}
 	for rows.Next() {
-		var i GetPostsByLanguageRow
+		var i UserPost
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
@@ -323,16 +269,6 @@ func (q *Queries) GetPostsByLanguage(ctx context.Context, language string) ([]Ge
 			&i.PostTime,
 			&i.PostTitle,
 			&i.PostDescription,
-			&i.ID_2,
-			&i.Url,
-			&i.Language,
-			&i.Difficulty,
-			&i.Title,
-			&i.Description,
-			&i.MediaType,
-			&i.Category,
-			&i.ThumbnailUrl,
-			&i.InsertedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -348,40 +284,29 @@ func (q *Queries) GetPostsByLanguage(ctx context.Context, language string) ([]Ge
 }
 
 const getPostsByMediaType = `-- name: GetPostsByMediaType :many
-SELECT p.id, user_id, resource_id, post_time, post_title, post_description, r.id, url, language, difficulty, title, description, media_type, category, thumbnail_url, inserted_at FROM user_post AS p
+SELECT p.id, p.user_id, p.resource_id, p.post_time, p.post_title, p.post_description FROM user_post AS p
 JOIN resources AS r
 ON p.resource_id = r.id
 WHERE r.media_type = $1
+ORDER BY p.resource_id
+LIMIT $2 OFFSET $3
 `
 
-type GetPostsByMediaTypeRow struct {
-	ID              string         `json:"id"`
-	UserID          string         `json:"user_id"`
-	ResourceID      int64          `json:"resource_id"`
-	PostTime        time.Time      `json:"post_time"`
-	PostTitle       string         `json:"post_title"`
-	PostDescription sql.NullString `json:"post_description"`
-	ID_2            int64          `json:"id_2"`
-	Url             string         `json:"url"`
-	Language        string         `json:"language"`
-	Difficulty      sql.NullString `json:"difficulty"`
-	Title           string         `json:"title"`
-	Description     sql.NullString `json:"description"`
-	MediaType       sql.NullString `json:"media_type"`
-	Category        string         `json:"category"`
-	ThumbnailUrl    sql.NullString `json:"thumbnail_url"`
-	InsertedAt      time.Time      `json:"inserted_at"`
+type GetPostsByMediaTypeParams struct {
+	MediaType sql.NullString `json:"media_type"`
+	Limit     int32          `json:"limit"`
+	Offset    int32          `json:"offset"`
 }
 
-func (q *Queries) GetPostsByMediaType(ctx context.Context, mediaType sql.NullString) ([]GetPostsByMediaTypeRow, error) {
-	rows, err := q.query(ctx, q.getPostsByMediaTypeStmt, getPostsByMediaType, mediaType)
+func (q *Queries) GetPostsByMediaType(ctx context.Context, arg GetPostsByMediaTypeParams) ([]UserPost, error) {
+	rows, err := q.query(ctx, q.getPostsByMediaTypeStmt, getPostsByMediaType, arg.MediaType, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []GetPostsByMediaTypeRow{}
+	items := []UserPost{}
 	for rows.Next() {
-		var i GetPostsByMediaTypeRow
+		var i UserPost
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
@@ -389,16 +314,6 @@ func (q *Queries) GetPostsByMediaType(ctx context.Context, mediaType sql.NullStr
 			&i.PostTime,
 			&i.PostTitle,
 			&i.PostDescription,
-			&i.ID_2,
-			&i.Url,
-			&i.Language,
-			&i.Difficulty,
-			&i.Title,
-			&i.Description,
-			&i.MediaType,
-			&i.Category,
-			&i.ThumbnailUrl,
-			&i.InsertedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -416,10 +331,18 @@ func (q *Queries) GetPostsByMediaType(ctx context.Context, mediaType sql.NullStr
 const getPostsByUser = `-- name: GetPostsByUser :many
 SELECT id, user_id, resource_id, post_time, post_title, post_description FROM user_post
 WHERE user_id = $1
+ORDER BY user_id
+LIMIT $2 OFFSET $3
 `
 
-func (q *Queries) GetPostsByUser(ctx context.Context, userID string) ([]UserPost, error) {
-	rows, err := q.query(ctx, q.getPostsByUserStmt, getPostsByUser, userID)
+type GetPostsByUserParams struct {
+	UserID string `json:"user_id"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
+}
+
+func (q *Queries) GetPostsByUser(ctx context.Context, arg GetPostsByUserParams) ([]UserPost, error) {
+	rows, err := q.query(ctx, q.getPostsByUserStmt, getPostsByUser, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

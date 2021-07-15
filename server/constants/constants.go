@@ -9,3 +9,7 @@ func LANGUAGES() []string {
 		"EN",
 	}
 }
+
+const LIMIT = 10
+
+const OFFSET = 10

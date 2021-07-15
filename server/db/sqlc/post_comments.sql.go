@@ -57,10 +57,16 @@ func (q *Queries) AddCommentAsResponse(ctx context.Context, arg AddCommentAsResp
 const getAllPostComments = `-- name: GetAllPostComments :many
 SELECT id, user_id, post_id, content, comment_time FROM comments
 ORDER BY comment_time DESC
+LIMIT $1 OFFSET $2
 `
 
-func (q *Queries) GetAllPostComments(ctx context.Context) ([]Comment, error) {
-	rows, err := q.query(ctx, q.getAllPostCommentsStmt, getAllPostComments)
+type GetAllPostCommentsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) GetAllPostComments(ctx context.Context, arg GetAllPostCommentsParams) ([]Comment, error) {
+	rows, err := q.query(ctx, q.getAllPostCommentsStmt, getAllPostComments, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -92,10 +98,17 @@ const getAllUserComments = `-- name: GetAllUserComments :many
 SELECT id, user_id, post_id, content, comment_time FROM comments
 WHERE user_id = $1
 ORDER BY comment_time DESC
+LIMIT $2 OFFSET $3
 `
 
-func (q *Queries) GetAllUserComments(ctx context.Context, userID string) ([]Comment, error) {
-	rows, err := q.query(ctx, q.getAllUserCommentsStmt, getAllUserComments, userID)
+type GetAllUserCommentsParams struct {
+	UserID string `json:"user_id"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
+}
+
+func (q *Queries) GetAllUserComments(ctx context.Context, arg GetAllUserCommentsParams) ([]Comment, error) {
+	rows, err := q.query(ctx, q.getAllUserCommentsStmt, getAllUserComments, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -127,15 +140,23 @@ const getAllUserPostComments = `-- name: GetAllUserPostComments :many
 SELECT id, user_id, post_id, content, comment_time FROM comments
 WHERE post_id = $1 AND user_id = $2
 ORDER BY comment_time DESC
+LIMIT $3 OFFSET $4
 `
 
 type GetAllUserPostCommentsParams struct {
 	PostID string `json:"post_id"`
 	UserID string `json:"user_id"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
 }
 
 func (q *Queries) GetAllUserPostComments(ctx context.Context, arg GetAllUserPostCommentsParams) ([]Comment, error) {
-	rows, err := q.query(ctx, q.getAllUserPostCommentsStmt, getAllUserPostComments, arg.PostID, arg.UserID)
+	rows, err := q.query(ctx, q.getAllUserPostCommentsStmt, getAllUserPostComments,
+		arg.PostID,
+		arg.UserID,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +190,14 @@ JOIN comments_responses AS cr
 ON c.id = cr.source_comment_id
 WHERE c.id = $1
 ORDER BY c.comment_time DESC
+LIMIT $2 OFFSET $3
 `
+
+type GetCommentDirectResponsesParams struct {
+	ID     int64 `json:"id"`
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
 
 type GetCommentDirectResponsesRow struct {
 	ID                int64     `json:"id"`
@@ -181,8 +209,8 @@ type GetCommentDirectResponsesRow struct {
 	ResponseCommentID int64     `json:"response_comment_id"`
 }
 
-func (q *Queries) GetCommentDirectResponses(ctx context.Context, id int64) ([]GetCommentDirectResponsesRow, error) {
-	rows, err := q.query(ctx, q.getCommentDirectResponsesStmt, getCommentDirectResponses, id)
+func (q *Queries) GetCommentDirectResponses(ctx context.Context, arg GetCommentDirectResponsesParams) ([]GetCommentDirectResponsesRow, error) {
+	rows, err := q.query(ctx, q.getCommentDirectResponsesStmt, getCommentDirectResponses, arg.ID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 
+	"github.com/cr1m5onk1ng/nala_platform_app/constants"
 	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
 	"github.com/cr1m5onk1ng/nala_platform_app/validation"
 	"github.com/gofiber/fiber/v2"
@@ -46,7 +47,12 @@ func (h *Handlers) GetPostsByLanguage(ctx *fiber.Ctx) error {
 		})
 	}
 
-	posts, err := h.Repo.GetPostsByLanguage(ctx.Context(), lang)
+	args := db.GetPostsByLanguageParams{
+		Language: lang,
+		Limit:    constants.LIMIT,
+		Offset:   constants.OFFSET,
+	}
+	posts, err := h.Repo.GetPostsByLanguage(ctx.Context(), args)
 
 	if err != nil {
 		return SendFailureResponse(
@@ -73,7 +79,13 @@ func (h *Handlers) GetPostsByDifficulty(ctx *fiber.Ctx) error {
 		Valid:  true,
 	}
 
-	posts, err := h.Repo.GetPostsByDifficulty(ctx.Context(), nullableDifficulty)
+	args := db.GetPostsByDifficultyParams{
+		Difficulty: nullableDifficulty,
+		Limit:      constants.LIMIT,
+		Offset:     constants.OFFSET,
+	}
+
+	posts, err := h.Repo.GetPostsByDifficulty(ctx.Context(), args)
 	if err != nil {
 		return SendFailureResponse(
 			ctx,
@@ -99,7 +111,13 @@ func (h *Handlers) GetPostsByUser(ctx *fiber.Ctx) error {
 		})
 	}
 
-	posts, err := h.Repo.GetPostsByUser(ctx.Context(), id.String())
+	args := db.GetPostsByUserParams{
+		UserID: id.String(),
+		Limit:  constants.LIMIT,
+		Offset: constants.OFFSET,
+	}
+
+	posts, err := h.Repo.GetPostsByUser(ctx.Context(), args)
 	if err != nil {
 		return SendFailureResponse(
 			ctx,
@@ -118,7 +136,13 @@ func (h *Handlers) GetPostsByUser(ctx *fiber.Ctx) error {
 func (h *Handlers) GetPostsByCategory(ctx *fiber.Ctx) error {
 	cat := ctx.Params("cat")
 
-	posts, err := h.Repo.GetPostsByCategory(ctx.Context(), cat)
+	args := db.GetPostsByCategoryParams{
+		Category: cat,
+		Limit:    constants.LIMIT,
+		Offset:   constants.OFFSET,
+	}
+
+	posts, err := h.Repo.GetPostsByCategory(ctx.Context(), args)
 	if err != nil {
 		return SendFailureResponse(
 			ctx,
@@ -140,7 +164,14 @@ func (h *Handlers) GetPostsByMediaType(ctx *fiber.Ctx) error {
 		String: mediaType,
 		Valid:  true,
 	}
-	posts, err := h.Repo.GetPostsByMediaType(ctx.Context(), nullableMediaType)
+
+	args := db.GetPostsByMediaTypeParams{
+		MediaType: nullableMediaType,
+		Limit:     constants.LIMIT,
+		Offset:    constants.OFFSET,
+	}
+
+	posts, err := h.Repo.GetPostsByMediaType(ctx.Context(), args)
 	if err != nil {
 		return SendFailureResponse(
 			ctx,

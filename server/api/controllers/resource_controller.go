@@ -37,10 +37,15 @@ func (h *Handlers) GetResource(ctx *fiber.Ctx) error {
 
 func (h *Handlers) GetResourceByUrl(ctx *fiber.Ctx) error {
 	url := ctx.Params("url")
+	var err error
+	var resource db.Resource
 
-	// ADD URL VALIDATION
+	err = validation.ValidateResourceUrl(url)
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, "invalid url")
+	}
 
-	resource, err := h.Repo.GetResourceByUrl(ctx.Context(), url)
+	resource, err = h.Repo.GetResourceByUrl(ctx.Context(), url)
 	if err != nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error":   true,
@@ -177,7 +182,7 @@ func (h *Handlers) UpdateResource(ctx *fiber.Ctx) error {
 		ThumbnailUrl: resource.ThumbnailUrl,
 	}
 
-	editedResource, err := h.Repo.UpdateResource(ctx.Context(), args)
+	editedResource, err := h.Repo.UpdateResourceTrans(ctx.Context(), args)
 
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

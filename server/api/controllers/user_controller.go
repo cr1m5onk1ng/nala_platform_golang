@@ -100,7 +100,46 @@ func (h *Handlers) UpdateUserLanguage(ctx *fiber.Ctx) error {
 		NativeLanguage: user.NativeLanguage,
 	}
 
-	updatedUser, err := h.Repo.UpdateUserLanguage(ctx.Context(), args)
+	updatedUser, err := h.Repo.UpdateUserLanguageTrans(ctx.Context(), args)
+
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   true,
+			"message": err.Error(),
+			"data":    nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"error":   false,
+		"message": nil,
+		"data":    updatedUser,
+	})
+
+}
+
+func (h *Handlers) UpdateUserRole(ctx *fiber.Ctx) error {
+
+	user, err := validation.CheckUserDataValidtyAndAuthorization(ctx, &db.User{})
+	if err != nil {
+		return err
+	}
+
+	_, err = h.Repo.GetUser(ctx.Context(), user.ID)
+	if err != nil {
+		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error":   true,
+			"message": "user with specified ID not found",
+			"data":    nil,
+		})
+	}
+
+	args := db.UpdateUserRoleParams{
+		ID:   user.ID,
+		Role: user.Role,
+	}
+
+	updatedUser, err := h.Repo.UpdateUserRoleTrans(ctx.Context(), args)
 
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

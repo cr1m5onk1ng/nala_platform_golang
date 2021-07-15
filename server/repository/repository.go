@@ -1,29 +1,31 @@
-package db
+package repository
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
+
+	sqlc "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
 )
 
 type Repository struct {
-	*Queries
+	*sqlc.Queries
 	db *sql.DB
 }
 
 func NewRepository(db *sql.DB) *Repository {
 	return &Repository{
 		db:      db,
-		Queries: New(db),
+		Queries: sqlc.New(db),
 	}
 }
 
-func (Repository *Repository) execTx(ctx context.Context, fn func(*Queries) error) error {
-	tx, err := Repository.db.BeginTx(ctx, nil)
+func (r *Repository) execTx(ctx context.Context, fn func(*sqlc.Queries) error) error {
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
-	q := New(tx)
+	q := sqlc.New(tx)
 	err = fn(q)
 	if err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {

@@ -1,11 +1,18 @@
 package validation
 
 import (
+	"fmt"
+	"net/url"
+
 	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
 	"github.com/gofiber/fiber/v2"
 )
 
-func ValidateResourceUrl(url string) error {
+func ValidateResourceUrl(urlToParse string) error {
+	_, err := url.ParseRequestURI(urlToParse)
+	if err != nil {
+		return fmt.Errorf("error while parsing url: %s", urlToParse)
+	}
 	return nil
 }
 

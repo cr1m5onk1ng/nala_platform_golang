@@ -11,7 +11,7 @@ import (
 	"github.com/cr1m5onk1ng/nala_platform_app/api/controllers"
 	"github.com/cr1m5onk1ng/nala_platform_app/api/middleware"
 	"github.com/cr1m5onk1ng/nala_platform_app/api/routes"
-	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
+	repo "github.com/cr1m5onk1ng/nala_platform_app/repository"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -62,9 +62,9 @@ func main() {
 		panic(err)
 	}
 
-	repo := db.NewRepository(database)
+	repository := repo.NewRepository(database)
 
-	handlers := controllers.NewHandlers(repo)
+	handlers := controllers.NewHandlers(repository)
 
 	// Routes definition.
 	routes.SwaggerRoute(app)

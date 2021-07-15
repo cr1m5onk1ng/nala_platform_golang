@@ -205,7 +205,7 @@ func (h *Handlers) UpdatePost(ctx *fiber.Ctx) error {
 		PostTitle:       post.PostTitle,
 		PostDescription: post.PostDescription,
 	}
-	editedPost, err := h.Repo.UpdatePost(ctx.Context(), args)
+	editedPost, err := h.Repo.UpdatePostTrans(ctx.Context(), args)
 
 	if err != nil {
 		return SendFailureResponse(

@@ -1,15 +1,15 @@
 package controllers
 
 import (
-	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
+	rp "github.com/cr1m5onk1ng/nala_platform_app/repository"
 	"github.com/gofiber/fiber/v2"
 )
 
 type Handlers struct {
-	Repo *db.Repository
+	Repo *rp.Repository
 }
 
-func NewHandlers(repo *db.Repository) *Handlers {
+func NewHandlers(repo *rp.Repository) *Handlers {
 	return &Handlers{Repo: repo}
 }
 

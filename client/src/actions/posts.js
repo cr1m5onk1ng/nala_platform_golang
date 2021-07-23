@@ -1,16 +1,18 @@
-import { 
-    START_LOADING, 
-    END_LOADING, 
-    FETCH_POSTS_BY_LANGUAGE, 
-    FETCH_POST, 
-    FETCH_POSTS_BY_SEARCH, 
-    CREATE_POST, 
-    UPDATE_POST, 
-    DELETE_POST, 
-    LIKE_POST, 
-    COMMENT_POST, 
-    FETCH_POST_BY_CREATOR } from '../constants/actionTypes';
-import * as api from '../api/index.js';
+import {
+  START_LOADING,
+  END_LOADING,
+  FETCH_POSTS_BY_LANGUAGE,
+  FETCH_ALL_POSTS,
+  FETCH_POST,
+  FETCH_POSTS_BY_SEARCH,
+  CREATE_POST,
+  UPDATE_POST,
+  DELETE_POST,
+  LIKE_POST,
+  COMMENT_POST,
+  FETCH_POST_BY_CREATOR,
+} from "../constants/actionTypes";
+import * as api from "../api/index.js";
 
 export const getPost = (id) => async (dispatch) => {
   try {
@@ -25,21 +27,32 @@ export const getPost = (id) => async (dispatch) => {
 };
 
 export const getPosts = (page) => async (dispatch) => {
+  /*
   try {
     dispatch({ type: START_LOADING });
-    const { data: { data, currentPage, numberOfPages } } = await api.fetchPosts(page);
-
-    dispatch({ type: FETCH_POSTS_BY_LANGUAGE, payload: { data, currentPage, numberOfPages } });
+    const {
+      data: { data, currentPage, numberOfPages },
+    } = await api.fetchPosts(page);
+    dispatch({
+      type: FETCH_POSTS_BY_LANGUAGE,
+      payload: { data, currentPage, numberOfPages },
+    });
     dispatch({ type: END_LOADING });
   } catch (error) {
     console.log(error);
-  }
+  } */
+  dispatch({
+    type: FETCH_ALL_POSTS,
+    payload: { data: {} },
+  });
 };
 
 export const getPostsByCreator = (name) => async (dispatch) => {
   try {
     dispatch({ type: START_LOADING });
-    const { data: { data } } = await api.fetchPostsByCreator(name);
+    const {
+      data: { data },
+    } = await api.fetchPostsByCreator(name);
 
     dispatch({ type: FETCH_POST_BY_CREATOR, payload: { data } });
     dispatch({ type: END_LOADING });
@@ -51,7 +64,9 @@ export const getPostsByCreator = (name) => async (dispatch) => {
 export const getPostsBySearch = (searchQuery) => async (dispatch) => {
   try {
     dispatch({ type: START_LOADING });
-    const { data: { data } } = await api.fetchPostsBySearch(searchQuery);
+    const {
+      data: { data },
+    } = await api.fetchPostsBySearch(searchQuery);
 
     dispatch({ type: FETCH_POSTS_BY_SEARCH, payload: { data } });
     dispatch({ type: END_LOADING });
@@ -83,7 +98,7 @@ export const updatePost = (id, post) => async (dispatch) => {
 };
 
 export const likePost = (id) => async (dispatch) => {
-  const user = JSON.parse(localStorage.getItem('profile'));
+  const user = JSON.parse(localStorage.getItem("profile"));
 
   try {
     const { data } = await api.likePost(id, user?.token);

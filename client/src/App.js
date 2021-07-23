@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ThemeProvider, createTheme } from "@material-ui/core";
+import { ThemeProvider, createTheme, CssBaseline } from "@material-ui/core";
 import Home from "./components/Home/Home";
 
 function App() {
@@ -25,7 +25,9 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Home darkMode={darkMode} setDarkMode={setDarkMode} />
+      <>
+        <Home darkMode={darkMode} setDarkMode={setDarkMode} />
+      </>
     </ThemeProvider>
   );
 }

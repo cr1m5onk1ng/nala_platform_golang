@@ -1,11 +1,11 @@
 import { makeStyles } from "@material-ui/core/styles";
 
 export default makeStyles((theme) => ({
-  root: {
+  searchBar: {
     padding: "2px 4px",
     display: "flex",
     alignItems: "center",
-    width: 400,
+    maxWidth: "460px",
   },
   input: {
     marginLeft: theme.spacing(1),

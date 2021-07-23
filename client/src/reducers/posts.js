@@ -1,6 +1,7 @@
 import {
   START_LOADING,
   END_LOADING,
+  FETCH_ALL_POSTS,
   FETCH_POSTS_BY_LANGUAGE,
   FETCH_POST,
   FETCH_POSTS_BY_SEARCH,
@@ -18,6 +19,11 @@ export default (state = { isLoading: true, posts: [] }, action) => {
       return { ...state, isLoading: true };
     case END_LOADING:
       return { ...state, isLoading: false };
+    case FETCH_ALL_POSTS:
+      return {
+        ...state,
+        posts: action.payload.data,
+      };
     case FETCH_POSTS_BY_LANGUAGE:
       return {
         ...state,

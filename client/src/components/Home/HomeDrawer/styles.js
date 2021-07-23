@@ -1,13 +1,13 @@
 import { makeStyles } from "@material-ui/core";
+import { blue, green, red } from "@material-ui/core/colors";
 
 export default makeStyles((theme) => ({
   drawer: {
     width: 240,
-    flexShrink: 0,
+    flexShrink: 1,
   },
   drawerPaper: {
     width: 240,
-    borderRight: "none",
   },
   listItemText: {
     fontSize: 14,
@@ -16,7 +16,21 @@ export default makeStyles((theme) => ({
     paddingTop: 4,
     paddingBottom: 4,
   },
+  listItemFeed: {
+    color: blue[200],
+  },
+  listItemStudy: {
+    color: green[200],
+  },
+  listItemFavorites: {
+    color: red[200],
+  },
   subheader: {
     textTransform: "uppercase",
+  },
+  visible: {
+    width: 240,
+    flexShrink: 0,
+    zIndex: 999,
   },
 }));

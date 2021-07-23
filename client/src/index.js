@@ -6,6 +6,12 @@ import { CssBaseline } from "@material-ui/core";
 import { createStore, applyMiddleware, compose } from "redux";
 import thunk from "redux-thunk";
 import reducers from "./reducers";
+import TimeAgo from "javascript-time-ago";
+import en from "javascript-time-ago/locale/en";
+import it from "javascript-time-ago/locale/it";
+
+TimeAgo.addDefaultLocale(en);
+TimeAgo.addLocale(it);
 
 const store = createStore(reducers, {}, compose(applyMiddleware(thunk)));
 

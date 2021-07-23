@@ -13,7 +13,7 @@ export default function HomeSearchField() {
   const classes = useStyles();
 
   return (
-    <Paper component="form" className={classes.root}>
+    <Paper component="form" className={classes.searchBar}>
       <IconButton className={classes.iconButton} aria-label="menu">
         <TuneIcon />
       </IconButton>

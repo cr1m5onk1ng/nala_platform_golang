@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Toolbar,
   Drawer,
@@ -18,67 +18,80 @@ import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
 import LocalLibraryIcon from "@material-ui/icons/LocalLibrary";
 import RssFeedIcon from "@material-ui/icons/RssFeed";
 import AddIcon from "@material-ui/icons/Add";
+import { MEDIA_TYPES } from "../../../constants/categories";
+import { DIFFICULTIES } from "../../../constants/categories";
 
 import useStyles from "./styles";
 
-function HomeDrawer() {
+function HomeDrawer({ visible, onCloseDrawer, desktopMode }) {
   const classes = useStyles();
-  return (
-    <Hidden mdDown>
-      <Drawer
-        className={classes.drawer}
-        variant="permanent"
-        classes={{
-          paper: classes.drawerPaper,
-        }}
-      >
-        <Toolbar />
-        <div className={classes.drawerContainer}>
-          <List>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>{<RssFeedIcon />}</ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Feed"}
-              />
-            </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>{<LocalLibraryIcon />}</ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Study Plans"}
-              />
-            </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>{<FavoriteBorderIcon />}</ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Favorites"}
-              />
-            </ListItem>
-          </List>
-          <Divider />
 
-          <List
-            component="nav"
-            aria-labelledby="nested-list-subheader"
-            subheader={
-              <ListSubheader
-                component="div"
-                id="nested-list-subheader"
-                className={classes.subheader}
-              >
-                Difficulty
-              </ListSubheader>
-            }
-          >
-            <ListItem button classes={{ root: classes.listItem }}>
+  return (
+    <Drawer
+      open={!desktopMode ? visible : true}
+      onClose={onCloseDrawer !== undefined ? onCloseDrawer() : null}
+      anchor="left"
+      variant={desktopMode ? "permanent" : "temporary"}
+      className={classes.drawer}
+      classes={{
+        paper: classes.drawerPaper,
+      }}
+    >
+      <Toolbar />
+      <div className={classes.drawerContainer}>
+        <Divider />
+        <List>
+          <ListItem button classes={{ root: classes.listItem }}>
+            <ListItemIcon>
+              {<RssFeedIcon className={classes.listItemFeed} />}
+            </ListItemIcon>
+            <ListItemText
+              classes={{
+                primary: classes.listItemText,
+              }}
+              primary={"Feed"}
+            />
+          </ListItem>
+          <ListItem button classes={{ root: classes.listItem }}>
+            <ListItemIcon>
+              {<LocalLibraryIcon className={classes.listItemStudy} />}
+            </ListItemIcon>
+            <ListItemText
+              classes={{
+                primary: classes.listItemText,
+              }}
+              primary={"Study Plans"}
+            />
+          </ListItem>
+          <ListItem button classes={{ root: classes.listItem }}>
+            <ListItemIcon>
+              {<FavoriteBorderIcon className={classes.listItemFavorites} />}
+            </ListItemIcon>
+            <ListItemText
+              classes={{
+                primary: classes.listItemText,
+              }}
+              primary={"Favorites"}
+            />
+          </ListItem>
+        </List>
+        <Divider />
+
+        <List
+          component="nav"
+          aria-labelledby="nested-list-subheader"
+          subheader={
+            <ListSubheader
+              component="div"
+              id="nested-list-subheader"
+              className={classes.subheader}
+            >
+              Difficulty
+            </ListSubheader>
+          }
+        >
+          {DIFFICULTIES.map((diff) => (
+            <ListItem key={diff.id} button classes={{ root: classes.listItem }}>
               <ListItemIcon>
                 <AddIcon />
               </ListItemIcon>
@@ -86,10 +99,31 @@ function HomeDrawer() {
                 classes={{
                   primary: classes.listItemText,
                 }}
-                primary={"Easy"}
+                primary={diff.difficulty}
               />
             </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
+          ))}
+        </List>
+        <Divider />
+        <List
+          component="nav"
+          aria-labelledby="nested-list-subheader"
+          subheader={
+            <ListSubheader
+              component="div"
+              id="nested-list-subheader"
+              className={classes.subheader}
+            >
+              Difficulty
+            </ListSubheader>
+          }
+        >
+          {MEDIA_TYPES.map((media) => (
+            <ListItem
+              key={MediaKeySession.id}
+              button
+              classes={{ root: classes.listItem }}
+            >
               <ListItemIcon>
                 <AddIcon />
               </ListItemIcon>
@@ -97,171 +131,13 @@ function HomeDrawer() {
                 classes={{
                   primary: classes.listItemText,
                 }}
-                primary={"Medium"}
+                primary={media.mediaType}
               />
             </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Advanced"}
-              />
-            </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Native"}
-              />
-            </ListItem>
-          </List>
-          <Divider />
-          <List
-            component="nav"
-            aria-labelledby="nested-list-subheader"
-            subheader={
-              <ListSubheader
-                component="div"
-                id="nested-list-subheader"
-                className={classes.subheader}
-              >
-                Media
-              </ListSubheader>
-            }
-          >
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Articles"}
-              />
-            </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Videos"}
-              />
-            </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Podcasts"}
-              />
-            </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Movies/Series"}
-              />
-            </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"News"}
-              />
-            </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Books"}
-              />
-            </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Blogs"}
-              />
-            </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Posts"}
-              />
-            </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Social"}
-              />
-            </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Channels"}
-              />
-            </ListItem>
-            <ListItem button classes={{ root: classes.listItem }}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText
-                classes={{
-                  primary: classes.listItemText,
-                }}
-                primary={"Memes"}
-              />
-            </ListItem>
-          </List>
-        </div>
-      </Drawer>
-    </Hidden>
+          ))}
+        </List>
+      </div>
+    </Drawer>
   );
 }
 

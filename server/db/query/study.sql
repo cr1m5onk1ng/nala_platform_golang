@@ -22,11 +22,11 @@ SET title = $2, description = $3
 WHERE id = $1
 RETURNING *;
 
--- name RemoveStudyList :exec
+-- name: RemoveStudyList :exec
 DELETE FROM study_lists
 WHERE id = $1;
 
--- name RemoveAllUserStudyLists :exec
+-- name: RemoveAllUserStudyLists :exec
 DELETE FROM study_lists
 WHERE user_id = $1;
 

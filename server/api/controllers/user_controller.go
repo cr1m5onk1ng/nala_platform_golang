@@ -57,6 +57,7 @@ func (h *Handlers) CreateUser(ctx *fiber.Ctx) error {
 	}
 
 	args := db.CreateUserParams{
+		ID:             user.ID,
 		Username:       user.Username,
 		NativeLanguage: user.NativeLanguage,
 		Role:           user.Role,

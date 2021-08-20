@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -13,6 +12,7 @@ import (
 	"github.com/cr1m5onk1ng/nala_platform_app/api/routes"
 	repo "github.com/cr1m5onk1ng/nala_platform_app/repository"
 	"github.com/gofiber/fiber/v2"
+	_ "github.com/lib/pq"
 )
 
 func StartServerWithGracefulShutdown(a *fiber.App) {
@@ -27,37 +27,38 @@ func StartServerWithGracefulShutdown(a *fiber.App) {
 		// Received an interrupt signal, shutdown.
 		if err := a.Shutdown(); err != nil {
 			// Error from closing listeners, or context timeout:
-			log.Printf("Oops... Server is not shutting down! Reason: %v", err)
+			log.Printf("Error while shutting down server: %v", err)
 		}
-
 		close(idleConnsClosed)
 	}()
 
-	// Run server.
 	if err := a.Listen(os.Getenv("SERVER_URL")); err != nil {
-		log.Printf("Oops... Server is not running! Reason: %v", err)
+		log.Printf("Error while starting server: %v", err)
 	}
-
 	<-idleConnsClosed
 }
 
-// StartServer func for starting a simple server.
-func StartServer(a *fiber.App) {
-	// Run server.
-	if err := a.Listen(os.Getenv("SERVER_URL")); err != nil {
+func StartServer(a *fiber.App, serverUlr string) {
+	if err := a.Listen(serverUlr); err != nil {
 		log.Printf("Something went wrong while starting the server: %v", err)
 	}
 }
 
 func main() {
-	config := config.FiberConfig()
+	/*
+		envConfig, err := util.LoadConfig(".")
+		if err != nil {
+			log.Fatal("couldn't load configuration variables")
+		} */
 
-	app := fiber.New(config)
+	fiberConfig := config.FiberConfig()
+
+	app := fiber.New(fiberConfig)
 
 	// Register basic middleware (log and cors)
 	middleware.FiberMiddleware(app)
 
-	database, err := sql.Open("postgres", fmt.Sprintf("dbname=%s password=secret user=root sslmode=disable", "nala"))
+	database, err := sql.Open(os.Getenv("DB_DRIVER"), os.Getenv("DB_SOURCE"))
 	if err != nil {
 		panic(err)
 	}
@@ -68,9 +69,12 @@ func main() {
 
 	// Routes definition.
 	routes.SwaggerRoute(app)
+	routes.TokenRoutes(app)
 	routes.UserRoutes(app, handlers)
+	routes.PostRoutes(app, handlers)
+	routes.ResourceRoutes(app, handlers)
 	routes.NotFoundRoute(app)
 
-	StartServer(app)
+	StartServer(app, os.Getenv("SERVER_URL"))
 
 }

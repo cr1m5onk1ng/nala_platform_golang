@@ -10,16 +10,18 @@ import (
 
 const addPost = `-- name: AddPost :one
 INSERT INTO user_post (
+  id,
   user_id, 
   resource_id, 
   post_title, 
   post_description 
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3, $4, $5
 ) RETURNING id, user_id, resource_id, post_time, post_title, post_description
 `
 
 type AddPostParams struct {
+	ID              string         `json:"id"`
 	UserID          string         `json:"user_id"`
 	ResourceID      int64          `json:"resource_id"`
 	PostTitle       string         `json:"post_title"`
@@ -28,6 +30,7 @@ type AddPostParams struct {
 
 func (q *Queries) AddPost(ctx context.Context, arg AddPostParams) (UserPost, error) {
 	row := q.queryRow(ctx, q.addPostStmt, addPost,
+		arg.ID,
 		arg.UserID,
 		arg.ResourceID,
 		arg.PostTitle,

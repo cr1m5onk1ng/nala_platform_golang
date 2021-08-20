@@ -227,6 +227,16 @@ func (q *Queries) GetUserStudyLists(ctx context.Context, userID string) ([]Study
 	return items, nil
 }
 
+const removeAllUserStudyLists = `-- name: RemoveAllUserStudyLists :exec
+DELETE FROM study_lists
+WHERE user_id = $1
+`
+
+func (q *Queries) RemoveAllUserStudyLists(ctx context.Context, userID string) error {
+	_, err := q.exec(ctx, q.removeAllUserStudyListsStmt, removeAllUserStudyLists, userID)
+	return err
+}
+
 const removeResourceFromStudyList = `-- name: RemoveResourceFromStudyList :exec
 DELETE FROM study_list_resource
 WHERE resource_id = $1
@@ -234,6 +244,16 @@ WHERE resource_id = $1
 
 func (q *Queries) RemoveResourceFromStudyList(ctx context.Context, resourceID int64) error {
 	_, err := q.exec(ctx, q.removeResourceFromStudyListStmt, removeResourceFromStudyList, resourceID)
+	return err
+}
+
+const removeStudyList = `-- name: RemoveStudyList :exec
+DELETE FROM study_lists
+WHERE id = $1
+`
+
+func (q *Queries) RemoveStudyList(ctx context.Context, id int64) error {
+	_, err := q.exec(ctx, q.removeStudyListStmt, removeStudyList, id)
 	return err
 }
 

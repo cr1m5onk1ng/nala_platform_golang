@@ -12,19 +12,20 @@ import (
 
 func createRandomUser(t *testing.T) User {
 	arg := CreateUserParams{
+		ID:             util.RandomString(20),
 		Username:       util.RandomString(10),
+		Email:          util.RandomString(10),
 		Role:           sql.NullString{String: util.RandomString(5), Valid: true},
 		NativeLanguage: util.RandomString(2),
 	}
 	user, err := testQueries.CreateUser(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, user)
+	require.Equal(t, arg.ID, user.ID)
 	require.Equal(t, arg.Username, user.Username)
 	require.Equal(t, arg.Role, user.Role)
 	require.Equal(t, arg.NativeLanguage, user.NativeLanguage)
-
 	require.NotZero(t, user.ID)
-	require.NotZero(t, user.RegistrationDate)
 	return user
 }
 
@@ -68,4 +69,16 @@ func TestGetAllUsers(t *testing.T) {
 	for _, user := range users {
 		require.NotEmpty(t, user)
 	}
+}
+
+func TestUpdateUserLanguage(t *testing.T) {
+	user := createRandomUser(t)
+	params := UpdateUserLanguageParams{
+		ID:             user.ID,
+		NativeLanguage: "ja",
+	}
+	user2, err := testQueries.UpdateUserLanguage(context.Background(), params)
+	require.NoError(t, err)
+	require.NotEqual(t, user.NativeLanguage, user2.NativeLanguage)
+	require.Equal(t, user2.NativeLanguage, "ja")
 }

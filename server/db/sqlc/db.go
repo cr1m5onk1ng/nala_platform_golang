@@ -142,6 +142,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.removeAllDiscussionCommentsStmt, err = db.PrepareContext(ctx, removeAllDiscussionComments); err != nil {
 		return nil, fmt.Errorf("error preparing query RemoveAllDiscussionComments: %w", err)
 	}
+	if q.removeAllUserStudyListsStmt, err = db.PrepareContext(ctx, removeAllUserStudyLists); err != nil {
+		return nil, fmt.Errorf("error preparing query RemoveAllUserStudyLists: %w", err)
+	}
 	if q.removeCommentStmt, err = db.PrepareContext(ctx, removeComment); err != nil {
 		return nil, fmt.Errorf("error preparing query RemoveComment: %w", err)
 	}
@@ -165,6 +168,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.removeResourceFromStudyListStmt, err = db.PrepareContext(ctx, removeResourceFromStudyList); err != nil {
 		return nil, fmt.Errorf("error preparing query RemoveResourceFromStudyList: %w", err)
+	}
+	if q.removeStudyListStmt, err = db.PrepareContext(ctx, removeStudyList); err != nil {
+		return nil, fmt.Errorf("error preparing query RemoveStudyList: %w", err)
 	}
 	if q.removeUserStmt, err = db.PrepareContext(ctx, removeUser); err != nil {
 		return nil, fmt.Errorf("error preparing query RemoveUser: %w", err)
@@ -401,6 +407,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing removeAllDiscussionCommentsStmt: %w", cerr)
 		}
 	}
+	if q.removeAllUserStudyListsStmt != nil {
+		if cerr := q.removeAllUserStudyListsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing removeAllUserStudyListsStmt: %w", cerr)
+		}
+	}
 	if q.removeCommentStmt != nil {
 		if cerr := q.removeCommentStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing removeCommentStmt: %w", cerr)
@@ -439,6 +450,11 @@ func (q *Queries) Close() error {
 	if q.removeResourceFromStudyListStmt != nil {
 		if cerr := q.removeResourceFromStudyListStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing removeResourceFromStudyListStmt: %w", cerr)
+		}
+	}
+	if q.removeStudyListStmt != nil {
+		if cerr := q.removeStudyListStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing removeStudyListStmt: %w", cerr)
 		}
 	}
 	if q.removeUserStmt != nil {
@@ -570,6 +586,7 @@ type Queries struct {
 	getUserStudyListsStmt              *sql.Stmt
 	getUserTargetLanguagesStmt         *sql.Stmt
 	removeAllDiscussionCommentsStmt    *sql.Stmt
+	removeAllUserStudyListsStmt        *sql.Stmt
 	removeCommentStmt                  *sql.Stmt
 	removeDiscussionCommentStmt        *sql.Stmt
 	removeDiscussionCommentsByUserStmt *sql.Stmt
@@ -578,6 +595,7 @@ type Queries struct {
 	removePostDiscussionStmt           *sql.Stmt
 	removePostDiscussionsByCreatorStmt *sql.Stmt
 	removeResourceFromStudyListStmt    *sql.Stmt
+	removeStudyListStmt                *sql.Stmt
 	removeUserStmt                     *sql.Stmt
 	removeUserCommentsStmt             *sql.Stmt
 	removeUserPostsStmt                *sql.Stmt
@@ -634,6 +652,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getUserStudyListsStmt:              q.getUserStudyListsStmt,
 		getUserTargetLanguagesStmt:         q.getUserTargetLanguagesStmt,
 		removeAllDiscussionCommentsStmt:    q.removeAllDiscussionCommentsStmt,
+		removeAllUserStudyListsStmt:        q.removeAllUserStudyListsStmt,
 		removeCommentStmt:                  q.removeCommentStmt,
 		removeDiscussionCommentStmt:        q.removeDiscussionCommentStmt,
 		removeDiscussionCommentsByUserStmt: q.removeDiscussionCommentsByUserStmt,
@@ -642,6 +661,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		removePostDiscussionStmt:           q.removePostDiscussionStmt,
 		removePostDiscussionsByCreatorStmt: q.removePostDiscussionsByCreatorStmt,
 		removeResourceFromStudyListStmt:    q.removeResourceFromStudyListStmt,
+		removeStudyListStmt:                q.removeStudyListStmt,
 		removeUserStmt:                     q.removeUserStmt,
 		removeUserCommentsStmt:             q.removeUserCommentsStmt,
 		removeUserPostsStmt:                q.removeUserPostsStmt,

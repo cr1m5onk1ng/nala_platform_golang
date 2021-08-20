@@ -198,6 +198,7 @@ func (h *Handlers) AddPost(ctx *fiber.Ctx) error {
 	}
 
 	args := db.AddPostParams{
+		ID:              post.ID,
 		UserID:          post.UserID,
 		ResourceID:      post.ResourceID,
 		PostTitle:       post.PostTitle,

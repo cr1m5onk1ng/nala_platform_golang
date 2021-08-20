@@ -1,7 +1,7 @@
 postgres:
 	docker run --rm -d \
 	 --name postgres12 \
-	-e POSTGRES_USER=root \
+	 -e POSTGRES_USER=root \
 	 -e POSTGRES_PASSWORD=secret \
 	 -v ${HOME}/dev-postgres/data/:/var/lib/postgresql/data \
 	 -p 5432:5432 postgres:12-alpine
@@ -25,7 +25,7 @@ sqlc:
 	sqlc generate
 
 test:
-	go test -v -cover ./db/..
+	go test -v -cover ./db/sqlc/
 
 server:
 	go run main.go

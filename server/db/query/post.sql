@@ -42,12 +42,13 @@ LIMIT $2 OFFSET $3;
 
 -- name: AddPost :one
 INSERT INTO user_post (
+  id,
   user_id, 
   resource_id, 
   post_title, 
   post_description 
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3, $4, $5
 ) RETURNING *;
 
 -- name: UpdatePost :one

@@ -17,13 +17,13 @@ export default makeStyles((theme) => ({
     paddingBottom: 4,
   },
   listItemFeed: {
-    color: blue[200],
+    color: blue[400],
   },
   listItemStudy: {
-    color: green[200],
+    color: green[400],
   },
   listItemFavorites: {
-    color: red[200],
+    color: red[400],
   },
   subheader: {
     textTransform: "uppercase",

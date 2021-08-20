@@ -4,7 +4,14 @@ import { DRAWER_WIDTH } from "../../../constants/layout";
 export default makeStyles((theme) => ({
   appBar: {
     boxShadow: "none",
-    width: `calc(100% - ${DRAWER_WIDTH}px)`,
+    //width: `calc(100% - ${DRAWER_WIDTH}px)`,
+  },
+  toolbar: {
+    display: "flex",
+    alignItems: "center",
+    justifyItems: "center",
+    paddingLeft: "10vw",
+    paddingRight: "10vw",
   },
   mAppBar: {
     boxShadow: "none",

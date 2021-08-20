@@ -114,7 +114,7 @@ function HomeDrawer({ visible, onCloseDrawer, desktopMode }) {
               id="nested-list-subheader"
               className={classes.subheader}
             >
-              Difficulty
+              Media Type
             </ListSubheader>
           }
         >

@@ -10,6 +10,11 @@ export default makeStyles((theme) => ({
     maxWidth: "500px",
     padding: theme.spacing(6),
   },
+  description: {
+    minHeight: "100px",
+    maxLines: 3,
+    textOverflow: "ellipsis",
+  },
   image: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
@@ -66,6 +71,7 @@ export default makeStyles((theme) => ({
   customTag__text: {
     fontSize: "16px",
     fontWeight: "500",
+    marginLeft: theme.spacing(0.5),
   },
   countBadge: {
     display: "flex",
@@ -80,7 +86,9 @@ export default makeStyles((theme) => ({
     color: "#000",
   },
   countValue: {
-    fontSize: "16px",
+    fontSize: "14px",
+    fontWeight: "400",
+    color: "grey",
   },
   pink: {
     backgroundColor: pink[400],

@@ -26,10 +26,10 @@ function HomeAppBar({
 
   return (
     <AppBar
-      color="inherit"
+      color="primary"
       className={desktopMode ? classes.appBar : classes.mAppBar}
     >
-      <Toolbar>
+      <Toolbar className={classes.toolbar}>
         <Hidden mdUp>
           <IconButton
             edge="start"
@@ -46,7 +46,9 @@ function HomeAppBar({
           </Typography>
         </Hidden>
         <div className={classes.grow} />
-        <HomeSearchField />
+
+        {/*<HomeSearchField />*/}
+
         <div className={classes.grow} />
         <Hidden mdDown>
           <Button
@@ -54,7 +56,7 @@ function HomeAppBar({
             className={`${classes.menuIcon} ${classes.addIcon}`}
             startIcon={<Add />}
             variant="contained"
-            color="primary"
+            color="secondary"
           >
             Add Post
           </Button>
@@ -63,7 +65,7 @@ function HomeAppBar({
           className={classes.menuIcon}
           startIcon={<AccountCircle />}
           variant="outlined"
-          color="secondary"
+          color="inherit"
         >
           Login
         </Button>

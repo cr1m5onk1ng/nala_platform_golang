@@ -30,38 +30,6 @@ export default function PostCard({
 }) {
   const classes = useStyles();
 
-  const difficultiesRow = (difficulties) => {
-    return (
-      <div className={classes.difficultiesContainer}>
-        <Chip
-          className={classes.green}
-          variant="outlined"
-          className={classes.tagContainer}
-          label={"Easy"}
-          avatar={<Avatar className={classes.green}>{easyCount}</Avatar>}
-        />
-        <Chip
-          variant="outlined"
-          className={classes.tagContainer}
-          label={"Medium"}
-          avatar={<Avatar className={classes.blue}>{mediumCount}</Avatar>}
-        />
-        <Chip
-          variant="outlined"
-          className={classes.tagContainer}
-          label={"Advanced"}
-          avatar={<Avatar className={classes.pink}>{advancedCount}</Avatar>}
-        />
-        <Chip
-          variant="outlined"
-          className={classes.tagContainer}
-          label={"Native"}
-          avatar={<Avatar className={classes.red}>{nativeCount}</Avatar>}
-        />
-      </div>
-    );
-  };
-
   const tag = (text, count, customClass) => {
     return (
       <div className={`${classes.customTag} ${customClass}`}>
@@ -134,7 +102,12 @@ export default function PostCard({
         title={title}
       />
       <CardContent>
-        <Typography variant="body1" color="textSecondary">
+        <Typography
+          variant="body1"
+          component="p"
+          color="textSecondary"
+          className={classes.description}
+        >
           {description}
         </Typography>
       </CardContent>

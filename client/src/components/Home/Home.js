@@ -50,7 +50,7 @@ function Home({ darkMode, setDarkMode }) {
     <>
       <CssBaseline />
       <div className={classes.home}>
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <Hidden mdUp>
             <HomeAppBar
               darkMode={darkMode}
@@ -71,17 +71,20 @@ function Home({ darkMode, setDarkMode }) {
               desktopMode={true}
             />
           </Hidden>
-          <Box display="flex">
+          {/*
             <Hidden mdDown>
-              <HomeDrawer desktopMode={true} />
-            </Hidden>
-            <Hidden mdUp>
-              <HomeDrawer
-                visible={drawerVisible}
-                onCloseDrawer={closeDrawer}
-                desktopMode={false}
-              />
-            </Hidden>
+            <HomeDrawer desktopMode={true} />
+          </Hidden>
+          <Hidden mdUp>
+            <HomeDrawer
+              visible={drawerVisible}
+              onCloseDrawer={closeDrawer}
+              desktopMode={false}
+            />
+          </Hidden>
+          */}
+
+          <Box className={classes.bodyContainer}>
             <Grow in>
               <Container>
                 <Posts />

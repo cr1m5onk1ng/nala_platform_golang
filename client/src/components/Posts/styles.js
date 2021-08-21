@@ -2,7 +2,10 @@ import { makeStyles } from "@material-ui/core";
 
 export default makeStyles((theme) => ({
   container: {
-    padding: theme.spacing(16),
-    margin: theme.spacing(6),
+    maxWidth: "40vw",
+    flex: 1,
+    marginTop: "5vw",
+    padding: "3rem",
+    backgroundColor: theme.palette.background.paper,
   },
 }));

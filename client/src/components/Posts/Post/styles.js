@@ -1,5 +1,13 @@
 import { makeStyles } from "@material-ui/core";
-import { pink, lightGreen, lightBlue, red } from "@material-ui/core/colors";
+import {
+  pink,
+  lightGreen,
+  lightBlue,
+  red,
+  blue,
+  green,
+  blueGrey,
+} from "@material-ui/core/colors";
 
 export default makeStyles((theme) => ({
   cardContainer: {
@@ -8,10 +16,11 @@ export default makeStyles((theme) => ({
     borderRadius: 12,
     minWidth: "250px",
     maxWidth: "500px",
-    padding: theme.spacing(6),
+    padding: theme.spacing(3),
   },
   description: {
-    minHeight: "100px",
+    minHeight: "30px",
+    maxHeight: "60px",
     maxLines: 3,
     textOverflow: "ellipsis",
   },
@@ -25,7 +34,7 @@ export default makeStyles((theme) => ({
     justifyContent: "center",
   },
   tagContainer: {
-    margin: theme.spacing(0.5),
+    margin: theme.spacing(0.3),
   },
   tagRow: {
     display: "flex",
@@ -91,15 +100,15 @@ export default makeStyles((theme) => ({
     color: "grey",
   },
   pink: {
-    backgroundColor: pink[400],
+    backgroundColor: blueGrey[400],
     color: "#fff",
   },
   green: {
-    backgroundColor: lightGreen[400],
+    backgroundColor: green[400],
     color: "#fff",
   },
   blue: {
-    backgroundColor: lightBlue[400],
+    backgroundColor: blue[400],
     color: "#fff",
   },
   red: {

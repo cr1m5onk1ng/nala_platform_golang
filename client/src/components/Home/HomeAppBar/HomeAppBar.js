@@ -29,7 +29,7 @@ function HomeAppBar({
       color="primary"
       className={desktopMode ? classes.appBar : classes.mAppBar}
     >
-      <Toolbar className={classes.toolbar}>
+      <Toolbar className={desktopMode ? classes.toolbar : classes.toolbarSmall}>
         <Hidden mdUp>
           <IconButton
             edge="start"

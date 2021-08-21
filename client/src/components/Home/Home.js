@@ -16,6 +16,7 @@ import PostForm from "./HomeAppBar/Form/PostForm";
 import { useDispatch } from "react-redux";
 import { getPosts } from "../../actions/posts";
 import Posts from "../Posts/Posts";
+import Sidebar from "./Sidebar/Sidebar";
 
 function Home({ darkMode, setDarkMode }) {
   const classes = useStyles();
@@ -70,25 +71,18 @@ function Home({ darkMode, setDarkMode }) {
               onCloseForm={closeFormDialog}
               desktopMode={true}
             />
+            <Sidebar />
           </Hidden>
-          {/*
-            <Hidden mdDown>
-            <HomeDrawer desktopMode={true} />
-          </Hidden>
-          <Hidden mdUp>
-            <HomeDrawer
-              visible={drawerVisible}
-              onCloseDrawer={closeDrawer}
-              desktopMode={false}
-            />
-          </Hidden>
-          */}
-
           <Box className={classes.bodyContainer}>
+            <Hidden mdUp>
+              <HomeDrawer
+                visible={drawerVisible}
+                onCloseDrawer={closeDrawer}
+                desktopMode={false}
+              />
+            </Hidden>
             <Grow in>
-              <Container>
-                <Posts />
-              </Container>
+              <Posts />
             </Grow>
           </Box>
         </Container>

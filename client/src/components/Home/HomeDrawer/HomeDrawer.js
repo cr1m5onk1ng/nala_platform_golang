@@ -37,7 +37,6 @@ function HomeDrawer({ visible, onCloseDrawer, desktopMode }) {
         paper: classes.drawerPaper,
       }}
     >
-      <Toolbar />
       <div className={classes.drawerContainer}>
         <Divider />
         <List>

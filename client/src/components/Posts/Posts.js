@@ -14,11 +14,11 @@ function Posts() {
     <Grid
       className={classes.container}
       container
-      alignItems="center"
       spacing={6}
+      justifyContent="center"
     >
       {posts?.map((post) => (
-        <Grid key={post._id} item>
+        <Grid item key={post._id}>
           <PostCard
             title={post.title}
             mediaType={post.mediaType}

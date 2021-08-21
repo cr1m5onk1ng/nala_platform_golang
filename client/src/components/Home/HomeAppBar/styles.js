@@ -4,7 +4,6 @@ import { DRAWER_WIDTH } from "../../../constants/layout";
 export default makeStyles((theme) => ({
   appBar: {
     boxShadow: "none",
-    //width: `calc(100% - ${DRAWER_WIDTH}px)`,
   },
   toolbar: {
     display: "flex",
@@ -12,6 +11,11 @@ export default makeStyles((theme) => ({
     justifyItems: "center",
     paddingLeft: "10vw",
     paddingRight: "10vw",
+  },
+  toolbarSmall: {
+    display: "flex",
+    alignItems: "center",
+    justifyItems: "center",
   },
   mAppBar: {
     boxShadow: "none",

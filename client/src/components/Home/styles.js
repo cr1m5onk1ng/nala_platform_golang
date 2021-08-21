@@ -4,16 +4,17 @@ import { DRAWER_WIDTH } from "../../constants/layout";
 export default makeStyles((theme) => ({
   home: {
     backgroundColor: theme.palette.background.dark,
-    padding: "60px",
   },
-  container: {
-    display: "flex",
-    alignItems: "center",
+  appContainer: {
+    marginLeft: "7vw",
+    marginRight: "7vw",
   },
   bodyContainer: {
     display: "flex",
-    alignItems: "center",
+    height: "100vh",
+    alignItems: "start",
     justifyContent: "center",
-    //marginLeft: `${DRAWER_WIDTH}px`,
+    marginLeft: "7vw",
+    marginRight: "7vw",
   },
 }));

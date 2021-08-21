@@ -17,7 +17,8 @@ func ResourceRoutes(app *fiber.App, handlers *controllers.Handlers) {
 	route.Get("/resource/:usrId", handlers.GetResourcesPostsByUser)
 
 	// Routes for POST method:
-	route.Post("/resources", middleware.JWTProtected(), handlers.AddResource)
+	//route.Post("/resources", middleware.JWTProtected(), handlers.AddResource)
+	route.Post("/resources", handlers.AddResourceNotSecure)
 
 	// Routes for PATCH method
 	route.Patch("/resources/:id", middleware.JWTProtected(), handlers.UpdateResource)

@@ -14,7 +14,8 @@ func UserRoutes(app *fiber.App, handlers *controllers.Handlers) {
 	route.Get("/users/:id", handlers.GetUser)
 
 	// Routes for POST method:
-	route.Post("/users", middleware.JWTProtected(), handlers.CreateUser)
+	//route.Post("/users", middleware.JWTProtected(), handlers.CreateUser)
+	route.Post("/users", handlers.CreateUserNotSecure)
 
 	// Routes for PATCH method
 	route.Patch("/users/:id", middleware.JWTProtected(), handlers.GetUser)

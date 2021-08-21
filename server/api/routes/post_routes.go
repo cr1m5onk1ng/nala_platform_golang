@@ -20,7 +20,8 @@ func PostRoutes(app *fiber.App, handlers *controllers.Handlers) {
 	route.Get("/posts/likes/:id", handlers.GetPostLikes)
 
 	// Routes for POST method
-	route.Post("/posts", middleware.JWTProtected(), handlers.AddPost)
+	//route.Post("/posts", middleware.JWTProtected(), handlers.AddPost)
+	route.Post("/posts", handlers.AddPostNotSecure)
 
 	// Routes for PATCH method
 	route.Patch("/posts/:postId", middleware.JWTProtected(), handlers.UpdatePost)

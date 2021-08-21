@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
+	"github.com/cr1m5onk1ng/nala_platform_app/domain"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -16,7 +16,7 @@ func ValidateResourceUrl(urlToParse string) error {
 	return nil
 }
 
-func ValidateResourceData(ctx *fiber.Ctx, resource *db.Resource) (*db.Resource, error) {
+func ValidateResourceData(ctx *fiber.Ctx, resource *domain.MappedResource) (*domain.MappedResource, error) {
 	// Check if data is valid
 	if err := ctx.BodyParser(resource); err != nil {
 		// Return status 400 and error message.
@@ -42,7 +42,7 @@ func ValidateResourceData(ctx *fiber.Ctx, resource *db.Resource) (*db.Resource, 
 	return resource, nil
 }
 
-func ValidateResourceDataAndUrlAndAuthorization(ctx *fiber.Ctx, resource *db.Resource) (*db.Resource, error) {
+func ValidateResourceDataAndUrlAndAuthorization(ctx *fiber.Ctx, resource *domain.MappedResource) (*domain.MappedResource, error) {
 	var err error
 	if err = CheckUserAuthorization(ctx); err != nil {
 		return nil, err

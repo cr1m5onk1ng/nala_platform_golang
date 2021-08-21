@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"database/sql"
 	"strconv"
 
 	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
+	"github.com/cr1m5onk1ng/nala_platform_app/domain"
 	"github.com/cr1m5onk1ng/nala_platform_app/validation"
 	"github.com/gofiber/fiber/v2"
 )
@@ -125,7 +127,7 @@ func (h *Handlers) GetResourcePost(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) AddResource(ctx *fiber.Ctx) error {
-	resource, err := validation.ValidateResourceDataAndUrlAndAuthorization(ctx, &db.Resource{})
+	resource, err := validation.ValidateResourceDataAndUrlAndAuthorization(ctx, &domain.MappedResource{})
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":   true,
@@ -137,12 +139,49 @@ func (h *Handlers) AddResource(ctx *fiber.Ctx) error {
 	args := db.AddResourceParams{
 		Url:          resource.Url,
 		Language:     resource.Language,
-		Difficulty:   resource.Difficulty,
+		Difficulty:   sql.NullString{String: resource.Difficulty, Valid: true},
 		Title:        resource.Title,
-		Description:  resource.Description,
-		MediaType:    resource.MediaType,
+		Description:  sql.NullString{String: resource.Description, Valid: true},
+		MediaType:    sql.NullString{String: resource.MediaType, Valid: true},
 		Category:     resource.Category,
-		ThumbnailUrl: resource.ThumbnailUrl,
+		ThumbnailUrl: sql.NullString{String: resource.ThumbnailUrl, Valid: true},
+	}
+	addedResource, err := h.Repo.AddResource(ctx.Context(), args)
+
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   true,
+			"message": "An error occured: " + err.Error(),
+			"data":    nil,
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error":   true,
+		"message": nil,
+		"data":    addedResource,
+	})
+}
+
+func (h *Handlers) AddResourceNotSecure(ctx *fiber.Ctx) error {
+	resource, err := validation.ValidateResourceData(ctx, &domain.MappedResource{})
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   true,
+			"message": "An error occured: " + err.Error(),
+			"data":    nil,
+		})
+	}
+
+	args := db.AddResourceParams{
+		Url:          resource.Url,
+		Language:     resource.Language,
+		Difficulty:   sql.NullString{String: resource.Difficulty, Valid: true},
+		Title:        resource.Title,
+		Description:  sql.NullString{String: resource.Description, Valid: true},
+		MediaType:    sql.NullString{String: resource.MediaType, Valid: true},
+		Category:     resource.Category,
+		ThumbnailUrl: sql.NullString{String: resource.ThumbnailUrl, Valid: true},
 	}
 	addedResource, err := h.Repo.AddResource(ctx.Context(), args)
 
@@ -162,7 +201,7 @@ func (h *Handlers) AddResource(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) UpdateResource(ctx *fiber.Ctx) error {
-	resource, err := validation.ValidateResourceDataAndUrlAndAuthorization(ctx, &db.Resource{})
+	resource, err := validation.ValidateResourceDataAndUrlAndAuthorization(ctx, &domain.MappedResource{})
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":   true,
@@ -174,12 +213,12 @@ func (h *Handlers) UpdateResource(ctx *fiber.Ctx) error {
 	args := db.UpdateResourceParams{
 		Url:          resource.Url,
 		Language:     resource.Language,
-		Difficulty:   resource.Difficulty,
+		Difficulty:   sql.NullString{String: resource.Difficulty, Valid: true},
 		Title:        resource.Title,
-		Description:  resource.Description,
-		MediaType:    resource.MediaType,
+		Description:  sql.NullString{String: resource.Description, Valid: true},
+		MediaType:    sql.NullString{String: resource.MediaType, Valid: true},
 		Category:     resource.Category,
-		ThumbnailUrl: resource.ThumbnailUrl,
+		ThumbnailUrl: sql.NullString{String: resource.ThumbnailUrl, Valid: true},
 	}
 
 	editedResource, err := h.Repo.UpdateResourceTrans(ctx.Context(), args)

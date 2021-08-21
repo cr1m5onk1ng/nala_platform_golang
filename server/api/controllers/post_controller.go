@@ -5,6 +5,7 @@ import (
 
 	"github.com/cr1m5onk1ng/nala_platform_app/constants"
 	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
+	"github.com/cr1m5onk1ng/nala_platform_app/domain"
 	"github.com/cr1m5onk1ng/nala_platform_app/validation"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -188,7 +189,7 @@ func (h *Handlers) GetPostsByMediaType(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) AddPost(ctx *fiber.Ctx) error {
-	post, err := validation.ValidatePostData(ctx, &db.UserPost{})
+	post, err := validation.ValidatePostDataAndAuthorization(ctx, &domain.MappedUserPost{})
 	if err != nil {
 		return SendFailureResponse(
 			ctx,
@@ -202,8 +203,44 @@ func (h *Handlers) AddPost(ctx *fiber.Ctx) error {
 		UserID:          post.UserID,
 		ResourceID:      post.ResourceID,
 		PostTitle:       post.PostTitle,
-		PostDescription: post.PostDescription,
+		PostDescription: sql.NullString{String: post.PostDescription, Valid: true},
 	}
+
+	addedPost, err := h.Repo.AddPost(ctx.Context(), args)
+
+	if err != nil {
+		return SendFailureResponse(
+			ctx,
+			fiber.StatusInternalServerError,
+			err.Error(),
+		)
+	}
+
+	return SendSuccessResponse(
+		ctx,
+		fiber.StatusOK,
+		addedPost,
+	)
+}
+
+func (h *Handlers) AddPostNotSecure(ctx *fiber.Ctx) error {
+	post, err := validation.ValidatePostData(ctx, &domain.MappedUserPost{})
+	if err != nil {
+		return SendFailureResponse(
+			ctx,
+			fiber.StatusNotFound,
+			"an error occured: "+err.Error(),
+		)
+	}
+
+	args := db.AddPostParams{
+		ID:              post.ID,
+		UserID:          post.UserID,
+		ResourceID:      post.ResourceID,
+		PostTitle:       post.PostTitle,
+		PostDescription: sql.NullString{String: post.PostDescription, Valid: true},
+	}
+
 	addedPost, err := h.Repo.AddPost(ctx.Context(), args)
 
 	if err != nil {
@@ -222,7 +259,7 @@ func (h *Handlers) AddPost(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) UpdatePost(ctx *fiber.Ctx) error {
-	post, err := validation.ValidatePostData(ctx, &db.UserPost{})
+	post, err := validation.ValidatePostData(ctx, &domain.MappedUserPost{})
 	if err != nil {
 		return SendFailureResponse(
 			ctx,
@@ -235,7 +272,7 @@ func (h *Handlers) UpdatePost(ctx *fiber.Ctx) error {
 		UserID:          post.UserID,
 		ResourceID:      post.ResourceID,
 		PostTitle:       post.PostTitle,
-		PostDescription: post.PostDescription,
+		PostDescription: sql.NullString{String: post.PostDescription, Valid: true},
 	}
 	editedPost, err := h.Repo.UpdatePostTrans(ctx.Context(), args)
 

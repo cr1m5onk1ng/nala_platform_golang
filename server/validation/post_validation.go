@@ -1,12 +1,12 @@
 package validation
 
 import (
-	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
+	"github.com/cr1m5onk1ng/nala_platform_app/domain"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
-func ValidatePostData(ctx *fiber.Ctx, post *db.UserPost) (*db.UserPost, error) {
+func ValidatePostData(ctx *fiber.Ctx, post *domain.MappedUserPost) (*domain.MappedUserPost, error) {
 	// Check if data is valid
 	if err := ctx.BodyParser(post); err != nil {
 		// Return status 400 and error message.
@@ -22,7 +22,7 @@ func ValidatePostData(ctx *fiber.Ctx, post *db.UserPost) (*db.UserPost, error) {
 	return post, nil
 }
 
-func ValidatePostDataAndAuthorization(ctx *fiber.Ctx, post *db.UserPost) (*db.UserPost, error) {
+func ValidatePostDataAndAuthorization(ctx *fiber.Ctx, post *domain.MappedUserPost) (*domain.MappedUserPost, error) {
 	var err error
 	if err = CheckUserAuthorization(ctx); err != nil {
 		return nil, err

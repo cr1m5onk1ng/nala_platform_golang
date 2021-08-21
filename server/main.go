@@ -11,11 +11,12 @@ import (
 	"github.com/cr1m5onk1ng/nala_platform_app/api/middleware"
 	"github.com/cr1m5onk1ng/nala_platform_app/api/routes"
 	repo "github.com/cr1m5onk1ng/nala_platform_app/repository"
+	"github.com/cr1m5onk1ng/nala_platform_app/util"
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/lib/pq"
 )
 
-func StartServerWithGracefulShutdown(a *fiber.App) {
+func StartServerWithGracefulShutdown(a *fiber.App, serverUrl string) {
 	// Create channel for idle connections.
 	idleConnsClosed := make(chan struct{})
 
@@ -32,24 +33,24 @@ func StartServerWithGracefulShutdown(a *fiber.App) {
 		close(idleConnsClosed)
 	}()
 
-	if err := a.Listen(os.Getenv("SERVER_URL")); err != nil {
+	if err := a.Listen(os.Getenv(serverUrl)); err != nil {
 		log.Printf("Error while starting server: %v", err)
 	}
 	<-idleConnsClosed
 }
 
-func StartServer(a *fiber.App, serverUlr string) {
-	if err := a.Listen(serverUlr); err != nil {
+func StartServer(a *fiber.App, serverUrl string) {
+	if err := a.Listen(serverUrl); err != nil {
 		log.Printf("Something went wrong while starting the server: %v", err)
 	}
 }
 
 func main() {
-	/*
-		envConfig, err := util.LoadConfig(".")
-		if err != nil {
-			log.Fatal("couldn't load configuration variables")
-		} */
+
+	envConfig, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal("couldn't load configuration variables")
+	}
 
 	fiberConfig := config.FiberConfig()
 
@@ -58,7 +59,7 @@ func main() {
 	// Register basic middleware (log and cors)
 	middleware.FiberMiddleware(app)
 
-	database, err := sql.Open(os.Getenv("DB_DRIVER"), os.Getenv("DB_SOURCE"))
+	database, err := sql.Open(envConfig.DB_DRIVER, envConfig.DB_SOURCE)
 	if err != nil {
 		panic(err)
 	}
@@ -68,13 +69,13 @@ func main() {
 	handlers := controllers.NewHandlers(repository)
 
 	// Routes definition.
-	routes.SwaggerRoute(app)
+	//routes.SwaggerRoute(app)
 	routes.TokenRoutes(app)
 	routes.UserRoutes(app, handlers)
 	routes.PostRoutes(app, handlers)
 	routes.ResourceRoutes(app, handlers)
 	routes.NotFoundRoute(app)
 
-	StartServer(app, os.Getenv("SERVER_URL"))
+	StartServer(app, envConfig.SERVER_URL)
 
 }

@@ -1,7 +1,11 @@
 package controllers
 
 import (
+	"database/sql"
+	"fmt"
+
 	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
+	"github.com/cr1m5onk1ng/nala_platform_app/domain"
 	"github.com/cr1m5onk1ng/nala_platform_app/validation"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -51,7 +55,8 @@ func (h *Handlers) GetAllUsers(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) CreateUser(ctx *fiber.Ctx) error {
-	user, err := validation.CheckUserDataValidtyAndAuthorization(ctx, &db.User{})
+
+	user, err := validation.CheckUserDataValidtyAndAuthorization(ctx, &domain.MappedUser{})
 	if err != nil {
 		return err
 	}
@@ -60,7 +65,7 @@ func (h *Handlers) CreateUser(ctx *fiber.Ctx) error {
 		ID:             user.ID,
 		Username:       user.Username,
 		NativeLanguage: user.NativeLanguage,
-		Role:           user.Role,
+		Role:           sql.NullString{String: user.Role, Valid: true},
 	}
 
 	insertedUser, err := h.Repo.CreateUser(ctx.Context(), args)
@@ -80,9 +85,46 @@ func (h *Handlers) CreateUser(ctx *fiber.Ctx) error {
 
 }
 
+func (h *Handlers) CreateUserNotSecure(ctx *fiber.Ctx) error {
+
+	user, err := validation.CheckUserDataValidty(ctx, &domain.MappedUser{})
+	if err != nil {
+		// Return status 400 and error message.
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   true,
+			"message": err.Error(),
+			"data":    nil,
+		})
+	}
+	user.ID = uuid.NewString()
+	fmt.Printf("Current parsed user: Username %s language %s, role %s", user.Username, user.NativeLanguage, user.Role)
+	args := db.CreateUserParams{
+		ID:             user.ID,
+		Username:       user.Username,
+		Email:          user.Email,
+		NativeLanguage: user.NativeLanguage,
+		Role:           sql.NullString{String: user.Role, Valid: true},
+	}
+	insertedUser, err := h.Repo.CreateUser(ctx.Context(), args)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   true,
+			"message": err.Error(),
+			"data":    nil,
+		})
+	}
+
+	return ctx.JSON(fiber.Map{
+		"error":   false,
+		"message": nil,
+		"data":    insertedUser,
+	})
+
+}
+
 func (h *Handlers) UpdateUserLanguage(ctx *fiber.Ctx) error {
 
-	user, err := validation.CheckUserDataValidtyAndAuthorization(ctx, &db.User{})
+	user, err := validation.CheckUserDataValidtyAndAuthorization(ctx, &domain.MappedUser{})
 	if err != nil {
 		return err
 	}
@@ -121,7 +163,7 @@ func (h *Handlers) UpdateUserLanguage(ctx *fiber.Ctx) error {
 
 func (h *Handlers) UpdateUserRole(ctx *fiber.Ctx) error {
 
-	user, err := validation.CheckUserDataValidtyAndAuthorization(ctx, &db.User{})
+	user, err := validation.CheckUserDataValidtyAndAuthorization(ctx, &domain.MappedUser{})
 	if err != nil {
 		return err
 	}
@@ -137,7 +179,7 @@ func (h *Handlers) UpdateUserRole(ctx *fiber.Ctx) error {
 
 	args := db.UpdateUserRoleParams{
 		ID:   user.ID,
-		Role: user.Role,
+		Role: sql.NullString{String: user.Role, Valid: true},
 	}
 
 	updatedUser, err := h.Repo.UpdateUserRoleTrans(ctx.Context(), args)

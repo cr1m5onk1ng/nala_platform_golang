@@ -8,19 +8,27 @@ import (
 	sqlc "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
 )
 
-type Repository struct {
+type Repository interface {
+	sqlc.Querier
+	UpdatePostTrans(ctx context.Context, args sqlc.UpdatePostParams) (sqlc.UserPost, error)
+	UpdateUserLanguageTrans(ctx context.Context, params sqlc.UpdateUserLanguageParams) (sqlc.User, error)
+	UpdateUserRoleTrans(ctx context.Context, params sqlc.UpdateUserRoleParams) (sqlc.User, error)
+	UpdateResourceTrans(ctx context.Context, args sqlc.UpdateResourceParams) (sqlc.Resource, error)
+}
+
+type SqlRepository struct {
 	*sqlc.Queries
 	db *sql.DB
 }
 
-func NewRepository(db *sql.DB) *Repository {
-	return &Repository{
+func NewRepository(db *sql.DB) Repository {
+	return &SqlRepository{
 		db:      db,
 		Queries: sqlc.New(db),
 	}
 }
 
-func (r *Repository) execTx(ctx context.Context, fn func(*sqlc.Queries) error) error {
+func (r *SqlRepository) execTx(ctx context.Context, fn func(*sqlc.Queries) error) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err

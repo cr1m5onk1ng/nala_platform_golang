@@ -4,7 +4,7 @@ This repository contains a prototype version of a platform aimed to make finding
 
 The platform is still in its early stages. For now, only part of the backend is functional and (partially) tested.
 
-All the code for the backend makes use of the awesome Go programming language [Go](https://golang.org/).
+All the code for the backend makes use of the awesome Go](https://golang.org/) programming language.
 
 <a href="https://golang.org/"><img src="https://user-images.githubusercontent.com/3613230/41752586-476b0b24-7596-11e8-95fe-8fd3faa21e8a.png" width="200"/></a>
 <br>

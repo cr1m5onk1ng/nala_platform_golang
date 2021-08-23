@@ -7,7 +7,7 @@ import (
 )
 
 func ResourceRoutes(app *fiber.App, handlers *controllers.Handlers) {
-	route := app.Group("/api/v1")
+	route := app.Group("/nala/v1")
 
 	// Routes for GET method:
 	route.Get("/resources/:id", handlers.GetResource)

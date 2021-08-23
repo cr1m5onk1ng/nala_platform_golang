@@ -1,7 +1,9 @@
 package domain
 
+import _ "github.com/go-playground/validator/v10"
+
 type MappedResource struct {
-	Url string `json:"url"`
+	Url string `json:"url" validate:"required,url"`
 	// 2 chars language code
 	Language     string `json:"language"`
 	Difficulty   string `json:"difficulty"`

@@ -43,6 +43,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.addStudyListStmt, err = db.PrepareContext(ctx, addStudyList); err != nil {
 		return nil, fmt.Errorf("error preparing query AddStudyList: %w", err)
 	}
+	if q.addUserTargetLanguageStmt, err = db.PrepareContext(ctx, addUserTargetLanguage); err != nil {
+		return nil, fmt.Errorf("error preparing query AddUserTargetLanguage: %w", err)
+	}
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
 	}
@@ -127,6 +130,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
 	}
+	if q.getUserByEmailStmt, err = db.PrepareContext(ctx, getUserByEmail); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserByEmail: %w", err)
+	}
 	if q.getUserFollowersStmt, err = db.PrepareContext(ctx, getUserFollowers); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserFollowers: %w", err)
 	}
@@ -138,6 +144,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getUserTargetLanguagesStmt, err = db.PrepareContext(ctx, getUserTargetLanguages); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserTargetLanguages: %w", err)
+	}
+	if q.getVoteStmt, err = db.PrepareContext(ctx, getVote); err != nil {
+		return nil, fmt.Errorf("error preparing query GetVote: %w", err)
+	}
+	if q.getVotesStmt, err = db.PrepareContext(ctx, getVotes); err != nil {
+		return nil, fmt.Errorf("error preparing query GetVotes: %w", err)
 	}
 	if q.removeAllDiscussionCommentsStmt, err = db.PrepareContext(ctx, removeAllDiscussionComments); err != nil {
 		return nil, fmt.Errorf("error preparing query RemoveAllDiscussionComments: %w", err)
@@ -181,6 +193,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.removeUserPostsStmt, err = db.PrepareContext(ctx, removeUserPosts); err != nil {
 		return nil, fmt.Errorf("error preparing query RemoveUserPosts: %w", err)
 	}
+	if q.removeVoteStmt, err = db.PrepareContext(ctx, removeVote); err != nil {
+		return nil, fmt.Errorf("error preparing query RemoveVote: %w", err)
+	}
 	if q.updateDiscussionCommentStmt, err = db.PrepareContext(ctx, updateDiscussionComment); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateDiscussionComment: %w", err)
 	}
@@ -201,6 +216,12 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.updateUserRoleStmt, err = db.PrepareContext(ctx, updateUserRole); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateUserRole: %w", err)
+	}
+	if q.updateVoteStmt, err = db.PrepareContext(ctx, updateVote); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateVote: %w", err)
+	}
+	if q.votePostStmt, err = db.PrepareContext(ctx, votePost); err != nil {
+		return nil, fmt.Errorf("error preparing query VotePost: %w", err)
 	}
 	return &q, nil
 }
@@ -240,6 +261,11 @@ func (q *Queries) Close() error {
 	if q.addStudyListStmt != nil {
 		if cerr := q.addStudyListStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing addStudyListStmt: %w", cerr)
+		}
+	}
+	if q.addUserTargetLanguageStmt != nil {
+		if cerr := q.addUserTargetLanguageStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing addUserTargetLanguageStmt: %w", cerr)
 		}
 	}
 	if q.createUserStmt != nil {
@@ -382,6 +408,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getUserStmt: %w", cerr)
 		}
 	}
+	if q.getUserByEmailStmt != nil {
+		if cerr := q.getUserByEmailStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserByEmailStmt: %w", cerr)
+		}
+	}
 	if q.getUserFollowersStmt != nil {
 		if cerr := q.getUserFollowersStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserFollowersStmt: %w", cerr)
@@ -400,6 +431,16 @@ func (q *Queries) Close() error {
 	if q.getUserTargetLanguagesStmt != nil {
 		if cerr := q.getUserTargetLanguagesStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserTargetLanguagesStmt: %w", cerr)
+		}
+	}
+	if q.getVoteStmt != nil {
+		if cerr := q.getVoteStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getVoteStmt: %w", cerr)
+		}
+	}
+	if q.getVotesStmt != nil {
+		if cerr := q.getVotesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getVotesStmt: %w", cerr)
 		}
 	}
 	if q.removeAllDiscussionCommentsStmt != nil {
@@ -472,6 +513,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing removeUserPostsStmt: %w", cerr)
 		}
 	}
+	if q.removeVoteStmt != nil {
+		if cerr := q.removeVoteStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing removeVoteStmt: %w", cerr)
+		}
+	}
 	if q.updateDiscussionCommentStmt != nil {
 		if cerr := q.updateDiscussionCommentStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateDiscussionCommentStmt: %w", cerr)
@@ -505,6 +551,16 @@ func (q *Queries) Close() error {
 	if q.updateUserRoleStmt != nil {
 		if cerr := q.updateUserRoleStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateUserRoleStmt: %w", cerr)
+		}
+	}
+	if q.updateVoteStmt != nil {
+		if cerr := q.updateVoteStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateVoteStmt: %w", cerr)
+		}
+	}
+	if q.votePostStmt != nil {
+		if cerr := q.votePostStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing votePostStmt: %w", cerr)
 		}
 	}
 	return err
@@ -553,6 +609,7 @@ type Queries struct {
 	addResourceStmt                    *sql.Stmt
 	addResourceToStudyListStmt         *sql.Stmt
 	addStudyListStmt                   *sql.Stmt
+	addUserTargetLanguageStmt          *sql.Stmt
 	createUserStmt                     *sql.Stmt
 	getAllPostCommentsStmt             *sql.Stmt
 	getAllUserCommentsStmt             *sql.Stmt
@@ -581,10 +638,13 @@ type Queries struct {
 	getStudyListStmt                   *sql.Stmt
 	getStudyListResourcesStmt          *sql.Stmt
 	getUserStmt                        *sql.Stmt
+	getUserByEmailStmt                 *sql.Stmt
 	getUserFollowersStmt               *sql.Stmt
 	getUserSavedResourcesStmt          *sql.Stmt
 	getUserStudyListsStmt              *sql.Stmt
 	getUserTargetLanguagesStmt         *sql.Stmt
+	getVoteStmt                        *sql.Stmt
+	getVotesStmt                       *sql.Stmt
 	removeAllDiscussionCommentsStmt    *sql.Stmt
 	removeAllUserStudyListsStmt        *sql.Stmt
 	removeCommentStmt                  *sql.Stmt
@@ -599,6 +659,7 @@ type Queries struct {
 	removeUserStmt                     *sql.Stmt
 	removeUserCommentsStmt             *sql.Stmt
 	removeUserPostsStmt                *sql.Stmt
+	removeVoteStmt                     *sql.Stmt
 	updateDiscussionCommentStmt        *sql.Stmt
 	updatePostStmt                     *sql.Stmt
 	updatePostDiscussionStmt           *sql.Stmt
@@ -606,6 +667,8 @@ type Queries struct {
 	updateStudyListStmt                *sql.Stmt
 	updateUserLanguageStmt             *sql.Stmt
 	updateUserRoleStmt                 *sql.Stmt
+	updateVoteStmt                     *sql.Stmt
+	votePostStmt                       *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -619,6 +682,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		addResourceStmt:                    q.addResourceStmt,
 		addResourceToStudyListStmt:         q.addResourceToStudyListStmt,
 		addStudyListStmt:                   q.addStudyListStmt,
+		addUserTargetLanguageStmt:          q.addUserTargetLanguageStmt,
 		createUserStmt:                     q.createUserStmt,
 		getAllPostCommentsStmt:             q.getAllPostCommentsStmt,
 		getAllUserCommentsStmt:             q.getAllUserCommentsStmt,
@@ -647,10 +711,13 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getStudyListStmt:                   q.getStudyListStmt,
 		getStudyListResourcesStmt:          q.getStudyListResourcesStmt,
 		getUserStmt:                        q.getUserStmt,
+		getUserByEmailStmt:                 q.getUserByEmailStmt,
 		getUserFollowersStmt:               q.getUserFollowersStmt,
 		getUserSavedResourcesStmt:          q.getUserSavedResourcesStmt,
 		getUserStudyListsStmt:              q.getUserStudyListsStmt,
 		getUserTargetLanguagesStmt:         q.getUserTargetLanguagesStmt,
+		getVoteStmt:                        q.getVoteStmt,
+		getVotesStmt:                       q.getVotesStmt,
 		removeAllDiscussionCommentsStmt:    q.removeAllDiscussionCommentsStmt,
 		removeAllUserStudyListsStmt:        q.removeAllUserStudyListsStmt,
 		removeCommentStmt:                  q.removeCommentStmt,
@@ -665,6 +732,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		removeUserStmt:                     q.removeUserStmt,
 		removeUserCommentsStmt:             q.removeUserCommentsStmt,
 		removeUserPostsStmt:                q.removeUserPostsStmt,
+		removeVoteStmt:                     q.removeVoteStmt,
 		updateDiscussionCommentStmt:        q.updateDiscussionCommentStmt,
 		updatePostStmt:                     q.updatePostStmt,
 		updatePostDiscussionStmt:           q.updatePostDiscussionStmt,
@@ -672,5 +740,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		updateStudyListStmt:                q.updateStudyListStmt,
 		updateUserLanguageStmt:             q.updateUserLanguageStmt,
 		updateUserRoleStmt:                 q.updateUserRoleStmt,
+		updateVoteStmt:                     q.updateVoteStmt,
+		votePostStmt:                       q.votePostStmt,
 	}
 }

@@ -18,8 +18,14 @@ dropdb:
 migrateup:
 	migrate -path ./db/migration -database "postgresql://root:secret@localhost:5432/nala?sslmode=disable" -verbose up
 
+migrateup_last:
+	migrate -path ./db/migration -database "postgresql://root:secret@localhost:5432/nala?sslmode=disable" -verbose up 1
+
 migratedown:
 	migrate -path ./db/migration -database "postgresql://root:secret@localhost:5432/nala?sslmode=disable" -verbose down
+
+migratedown_last:
+	migrate -path ./db/migration -database "postgresql://root:secret@localhost:5432/nala?sslmode=disable" -verbose down 1
 
 sqlc:
 	sqlc generate
@@ -30,4 +36,4 @@ test:
 server:
 	go run main.go
 
-.PHONY: postgres postgres_cleanup createdb dopdb migrateup migratedown sqlc test server
+.PHONY: postgres postgres_cleanup createdb dopdb migrateup migrateup_last migratedown migratedown_last sqlc test server

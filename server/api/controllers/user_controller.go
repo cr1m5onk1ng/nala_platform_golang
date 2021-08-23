@@ -6,57 +6,94 @@ import (
 
 	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
 	"github.com/cr1m5onk1ng/nala_platform_app/domain"
+	"github.com/cr1m5onk1ng/nala_platform_app/util"
 	"github.com/cr1m5onk1ng/nala_platform_app/validation"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
-func (h *Handlers) GetUser(ctx *fiber.Ctx) error {
-	id, err := uuid.Parse(ctx.Params("id"))
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": "An error has occured: " + err.Error(),
-			"data":    nil,
-		})
-	}
-	user, err := h.Repo.GetUser(ctx.Context(), id.String())
-	if err != nil {
-		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error":   true,
-			"message": "resource with the given ID was not found",
-			"data":    nil,
-		})
-	}
+// We don't want to return sensible data like password in the response
+// so we create a customized response
+type userResponse struct {
+	Username       string `json:"username"`
+	Email          string `json:"email"`
+	NativeLanguage string `json:"native_language"`
+}
 
-	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
-		"error":   false,
-		"message": nil,
-		"data":    user,
-	})
+type loginUserResponse struct {
+	AccessToken string `json:"access_token"`
+}
+
+func (h *Handlers) checkUserPermission(ctx *fiber.Ctx, id string) (db.User, error) {
+	payload := ctx.Locals(util.AuthPayloadKey).(*validation.Payload)
+	user, err := h.Repo.GetUser(ctx.Context(), id)
+	if err != nil {
+		return user, err
+	}
+	if payload.Username != user.Username {
+		return user, validation.ErrInvalidToken
+	}
+	return user, nil
+}
+
+func handleUserAuthError(ctx *fiber.Ctx, err error) error {
+	if err.Error() == validation.ErrInvalidToken.Error() {
+		return SendFailureResponse(ctx, fiber.StatusUnauthorized, err.Error())
+	}
+	return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
+}
+
+func (h *Handlers) LoginUser(ctx *fiber.Ctx) error {
+	loginReq, err := validation.CheckLoginDataValidity(ctx, &domain.LoginRequest{})
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
+	}
+	user, err := h.Repo.GetUserByEmail(ctx.Context(), loginReq.Email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
+		}
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
+	}
+	err = util.CheckPassword(loginReq.Password, user.HashedPassword)
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusUnauthorized, err.Error())
+	}
+	fmt.Printf("Token Duration: %s", h.Config.PASETO_TOKEN_DURATION)
+	token, err := h.TokenManager.CreateToken(user.Username, user.Email, h.Config.PASETO_TOKEN_DURATION)
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
+	}
+	response := loginUserResponse{
+		AccessToken: token,
+	}
+	return SendSuccessResponse(ctx, fiber.StatusOK, response)
+}
+
+func (h *Handlers) GetUser(ctx *fiber.Ctx) error {
+	idParam := ctx.Params("id")
+	id, err := util.ParseRequestParam(idParam)
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
+	}
+	user, err := h.checkUserPermission(ctx, id)
+	if err != nil {
+		return handleUserAuthError(ctx, err)
+	}
+	return SendSuccessResponse(ctx, fiber.StatusOK, user)
 }
 
 func (h *Handlers) GetAllUsers(ctx *fiber.Ctx) error {
-
 	users, err := h.Repo.GetAllUsers(ctx.Context())
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": err.Error(),
-			"data":    nil,
-		})
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
-
-	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
-		"error":   false,
-		"message": nil,
-		"data":    users,
-	})
+	return SendSuccessResponse(ctx, fiber.StatusOK, users)
 }
 
 func (h *Handlers) CreateUser(ctx *fiber.Ctx) error {
 
-	user, err := validation.CheckUserDataValidtyAndAuthorization(ctx, &domain.MappedUser{})
+	user, err := validation.CheckUserDataValidty(ctx, &domain.MappedUser{})
 	if err != nil {
 		return err
 	}
@@ -64,78 +101,42 @@ func (h *Handlers) CreateUser(ctx *fiber.Ctx) error {
 	args := db.CreateUserParams{
 		ID:             user.ID,
 		Username:       user.Username,
-		NativeLanguage: user.NativeLanguage,
-		Role:           sql.NullString{String: user.Role, Valid: true},
-	}
-
-	insertedUser, err := h.Repo.CreateUser(ctx.Context(), args)
-	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": err.Error(),
-			"data":    nil,
-		})
-	}
-
-	return ctx.JSON(fiber.Map{
-		"error":   false,
-		"message": nil,
-		"data":    insertedUser,
-	})
-
-}
-
-func (h *Handlers) CreateUserNotSecure(ctx *fiber.Ctx) error {
-
-	user, err := validation.CheckUserDataValidty(ctx, &domain.MappedUser{})
-	if err != nil {
-		// Return status 400 and error message.
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":   true,
-			"message": err.Error(),
-			"data":    nil,
-		})
-	}
-	user.ID = uuid.NewString()
-	fmt.Printf("Current parsed user: Username %s language %s, role %s", user.Username, user.NativeLanguage, user.Role)
-	args := db.CreateUserParams{
-		ID:             user.ID,
-		Username:       user.Username,
 		Email:          user.Email,
+		HashedPassword: user.Password,
 		NativeLanguage: user.NativeLanguage,
 		Role:           sql.NullString{String: user.Role, Valid: true},
 	}
+
 	insertedUser, err := h.Repo.CreateUser(ctx.Context(), args)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": err.Error(),
-			"data":    nil,
-		})
+		if pqErr, ok := err.(*pq.Error); ok {
+			return SendFailureResponse(ctx, fiber.StatusForbidden, pqErr.Error())
+		}
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
 
-	return ctx.JSON(fiber.Map{
-		"error":   false,
-		"message": nil,
-		"data":    insertedUser,
-	})
+	return SendSuccessResponse(
+		ctx,
+		fiber.StatusCreated,
+		userResponse{
+			Username:       insertedUser.Username,
+			Email:          insertedUser.Email,
+			NativeLanguage: insertedUser.NativeLanguage,
+		},
+	)
 
 }
 
 func (h *Handlers) UpdateUserLanguage(ctx *fiber.Ctx) error {
 
-	user, err := validation.CheckUserDataValidtyAndAuthorization(ctx, &domain.MappedUser{})
+	user, err := validation.CheckUserDataValidty(ctx, &domain.MappedUser{})
 	if err != nil {
 		return err
 	}
 
-	_, err = h.Repo.GetUser(ctx.Context(), user.ID)
+	_, err = h.checkUserPermission(ctx, user.ID)
 	if err != nil {
-		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error":   true,
-			"message": "user with specified ID not found",
-			"data":    nil,
-		})
+		return handleUserAuthError(ctx, err)
 	}
 
 	args := db.UpdateUserLanguageParams{
@@ -146,35 +147,30 @@ func (h *Handlers) UpdateUserLanguage(ctx *fiber.Ctx) error {
 	updatedUser, err := h.Repo.UpdateUserLanguageTrans(ctx.Context(), args)
 
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": err.Error(),
-			"data":    nil,
-		})
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
-
-	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"error":   false,
-		"message": nil,
-		"data":    updatedUser,
-	})
+	return SendSuccessResponse(
+		ctx,
+		fiber.StatusCreated,
+		userResponse{
+			Username:       updatedUser.Username,
+			Email:          updatedUser.Email,
+			NativeLanguage: updatedUser.NativeLanguage,
+		},
+	)
 
 }
 
 func (h *Handlers) UpdateUserRole(ctx *fiber.Ctx) error {
 
-	user, err := validation.CheckUserDataValidtyAndAuthorization(ctx, &domain.MappedUser{})
+	user, err := validation.CheckUserDataValidty(ctx, &domain.MappedUser{})
 	if err != nil {
 		return err
 	}
 
-	_, err = h.Repo.GetUser(ctx.Context(), user.ID)
+	_, err = h.checkUserPermission(ctx, user.ID)
 	if err != nil {
-		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error":   true,
-			"message": "user with specified ID not found",
-			"data":    nil,
-		})
+		return handleUserAuthError(ctx, err)
 	}
 
 	args := db.UpdateUserRoleParams{
@@ -185,17 +181,46 @@ func (h *Handlers) UpdateUserRole(ctx *fiber.Ctx) error {
 	updatedUser, err := h.Repo.UpdateUserRoleTrans(ctx.Context(), args)
 
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": err.Error(),
-			"data":    nil,
-		})
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
 
-	return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"error":   false,
-		"message": nil,
-		"data":    updatedUser,
-	})
+	return SendSuccessResponse(
+		ctx,
+		fiber.StatusCreated,
+		userResponse{
+			Username:       updatedUser.Username,
+			Email:          updatedUser.Email,
+			NativeLanguage: updatedUser.NativeLanguage,
+		},
+	)
+
+}
+
+func (h *Handlers) AddUserTargetLanguage(ctx *fiber.Ctx) error {
+	targetLang, err := validation.CheckTargetLanguageDataValidity(ctx, &db.Learning{})
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
+	}
+
+	/*
+		_, err = h.checkUserPermission(ctx, targetLang.UserID)
+		if err != nil {
+			return err
+		} */
+	_, err = h.checkUserPermission(ctx, targetLang.UserID)
+	if err != nil {
+		return handleUserAuthError(ctx, err)
+	}
+
+	args := db.AddUserTargetLanguageParams{
+		UserID:   targetLang.UserID,
+		Language: targetLang.Language,
+	}
+
+	addedLanguage, err := h.Repo.AddUserTargetLanguage(ctx.Context(), args)
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
+	}
+	return SendSuccessResponse(ctx, fiber.StatusCreated, addedLanguage)
 
 }

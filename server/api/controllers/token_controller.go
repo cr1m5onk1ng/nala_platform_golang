@@ -1,6 +1,9 @@
 package controllers
 
 import (
+	"os"
+	"strconv"
+
 	"github.com/cr1m5onk1ng/nala_platform_app/validation"
 	"github.com/gofiber/fiber/v2"
 )
@@ -13,9 +16,14 @@ import (
 // @Produce json
 // @Success 200 {string} status "ok"
 // @Router /v1/token/new [get]
-func GetNewAccessToken(c *fiber.Ctx) error {
+func GetNewJwtAccessToken(c *fiber.Ctx) error {
 	// Generate a new Access token.
-	token, err := validation.GenerateNewAccessToken()
+	secret := os.Getenv("JWT_SECRET_KEY")
+	minutesCount, err := strconv.Atoi(os.Getenv("JWT_SECRET_KEY_EXPIRE_MINUTES_COUNT"))
+	if err != nil {
+		return err
+	}
+	token, err := validation.GenerateNewAccessToken(secret, minutesCount)
 	if err != nil {
 		// Return status 500 and token generation error.
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

@@ -7,7 +7,7 @@ import (
 )
 
 func PostRoutes(app *fiber.App, handlers *controllers.Handlers) {
-	route := app.Group("/api/v1")
+	route := app.Group("/nala/v1")
 
 	// Routes for GET method
 	route.Get("/posts/:postId", handlers.GetPost)
@@ -21,11 +21,11 @@ func PostRoutes(app *fiber.App, handlers *controllers.Handlers) {
 
 	// Routes for POST method
 	//route.Post("/posts", middleware.JWTProtected(), handlers.AddPost)
-	route.Post("/posts", handlers.AddPostNotSecure)
+	route.Post("/posts", middleware.PasetoProtected(handlers.TokenManager), handlers.AddPostNotSecure)
 
 	// Routes for PATCH method
-	route.Patch("/posts/:postId", middleware.JWTProtected(), handlers.UpdatePost)
+	route.Patch("/posts/:postId", middleware.PasetoProtected(handlers.TokenManager), handlers.UpdatePost)
 
 	// Routes for DELETE method
-	route.Delete("/posts/:postId", middleware.JWTProtected(), handlers.RemovePost)
+	route.Delete("/posts/:postId", middleware.PasetoProtected(handlers.TokenManager), handlers.RemovePost)
 }

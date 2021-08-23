@@ -78,6 +78,7 @@ type StudyList struct {
 	CreationTime time.Time `json:"creation_time"`
 	Title        string    `json:"title"`
 	Description  string    `json:"description"`
+	Public       bool      `json:"public"`
 }
 
 type StudyListResource struct {
@@ -93,10 +94,12 @@ type Tag struct {
 
 type User struct {
 	// use UUID
-	ID               string    `json:"id"`
-	Username         string    `json:"username"`
-	Email            string    `json:"email"`
-	RegistrationDate time.Time `json:"registration_date"`
+	ID                string    `json:"id"`
+	Username          string    `json:"username"`
+	Email             string    `json:"email"`
+	HashedPassword    string    `json:"hashed_password"`
+	PasswordChangedAt time.Time `json:"password_changed_at"`
+	RegistrationDate  time.Time `json:"registration_date"`
 	// 2 chars language code
 	NativeLanguage string         `json:"native_language"`
 	Role           sql.NullString `json:"role"`
@@ -113,7 +116,8 @@ type UserPost struct {
 }
 
 type Vote struct {
-	UserID     string `json:"user_id"`
-	PostID     string `json:"post_id"`
-	Difficulty string `json:"difficulty"`
+	UserID     string         `json:"user_id"`
+	PostID     string         `json:"post_id"`
+	Difficulty string         `json:"difficulty"`
+	Comment    sql.NullString `json:"comment"`
 }

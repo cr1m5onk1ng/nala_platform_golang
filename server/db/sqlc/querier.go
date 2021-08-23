@@ -14,6 +14,7 @@ type Querier interface {
 	AddResource(ctx context.Context, arg AddResourceParams) (Resource, error)
 	AddResourceToStudyList(ctx context.Context, arg AddResourceToStudyListParams) (StudyListResource, error)
 	AddStudyList(ctx context.Context, arg AddStudyListParams) (StudyList, error)
+	AddUserTargetLanguage(ctx context.Context, arg AddUserTargetLanguageParams) (Learning, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	GetAllPostComments(ctx context.Context, arg GetAllPostCommentsParams) ([]Comment, error)
 	GetAllUserComments(ctx context.Context, arg GetAllUserCommentsParams) ([]Comment, error)
@@ -42,10 +43,13 @@ type Querier interface {
 	GetStudyList(ctx context.Context, id int64) (StudyList, error)
 	GetStudyListResources(ctx context.Context, studyListID int64) ([]Resource, error)
 	GetUser(ctx context.Context, id string) (User, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserFollowers(ctx context.Context, id string) ([]GetUserFollowersRow, error)
 	GetUserSavedResources(ctx context.Context, userID string) ([]GetUserSavedResourcesRow, error)
 	GetUserStudyLists(ctx context.Context, userID string) ([]StudyList, error)
 	GetUserTargetLanguages(ctx context.Context, userID string) ([]Learning, error)
+	GetVote(ctx context.Context, arg GetVoteParams) (Vote, error)
+	GetVotes(ctx context.Context, postID string) ([]Vote, error)
 	RemoveAllDiscussionComments(ctx context.Context, discussionID int64) error
 	RemoveAllUserStudyLists(ctx context.Context, userID string) error
 	RemoveComment(ctx context.Context, id int64) error
@@ -60,6 +64,7 @@ type Querier interface {
 	RemoveUser(ctx context.Context, id string) error
 	RemoveUserComments(ctx context.Context, userID string) error
 	RemoveUserPosts(ctx context.Context, userID string) error
+	RemoveVote(ctx context.Context, arg RemoveVoteParams) error
 	UpdateDiscussionComment(ctx context.Context, arg UpdateDiscussionCommentParams) (DiscussionComment, error)
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (UserPost, error)
 	UpdatePostDiscussion(ctx context.Context, arg UpdatePostDiscussionParams) (ResourceDiscussion, error)
@@ -67,6 +72,8 @@ type Querier interface {
 	UpdateStudyList(ctx context.Context, arg UpdateStudyListParams) (StudyList, error)
 	UpdateUserLanguage(ctx context.Context, arg UpdateUserLanguageParams) (User, error)
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error)
+	UpdateVote(ctx context.Context, arg UpdateVoteParams) (Vote, error)
+	VotePost(ctx context.Context, arg VotePostParams) (Vote, error)
 }
 
 var _ Querier = (*Queries)(nil)

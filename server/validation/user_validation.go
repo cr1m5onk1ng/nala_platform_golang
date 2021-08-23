@@ -3,7 +3,9 @@ package validation
 import (
 	"time"
 
+	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
 	"github.com/cr1m5onk1ng/nala_platform_app/domain"
+	"github.com/cr1m5onk1ng/nala_platform_app/util"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -11,31 +13,22 @@ import (
 func CheckUserDataValidty(ctx *fiber.Ctx, user *domain.MappedUser) (*domain.MappedUser, error) {
 	// Check if data is valid
 	if err := ctx.BodyParser(user); err != nil {
-		// Return status 400 and error message.
-		return nil, ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":   true,
-			"message": err.Error(),
-			"data":    nil,
-		})
+		return nil, err
 	}
-
 	user.ID = uuid.NewString()
-	/*
-		// Create a new validator for a User model.
-		validate := NewValidator()
-
-		// Validate user fields.
-		if err := validate.Struct(user); err != nil {
-			// Return, if some fields are not valid.
-			return nil, ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error":   true,
-				"message": ValidatorErrors(err),
-				"data":    nil,
-			})
-		}
-
-	*/
+	hashedPass, err := util.HashPassword(user.Password)
+	if err != nil {
+		return nil, err
+	}
+	user.Password = hashedPass
 	return user, nil
+}
+
+func CheckLoginDataValidity(ctx *fiber.Ctx, loginRequest *domain.LoginRequest) (*domain.LoginRequest, error) {
+	if err := ctx.BodyParser(loginRequest); err != nil {
+		return nil, err
+	}
+	return loginRequest, nil
 }
 
 func CheckUserAuthorization(ctx *fiber.Ctx) error {
@@ -76,4 +69,11 @@ func CheckUserDataValidtyAndAuthorization(ctx *fiber.Ctx, user *domain.MappedUse
 		return nil, err
 	}
 	return userToCheck, nil
+}
+
+func CheckTargetLanguageDataValidity(ctx *fiber.Ctx, targetLang *db.Learning) (*db.Learning, error) {
+	if err := ctx.BodyParser(targetLang); err != nil {
+		return nil, err
+	}
+	return targetLang, nil
 }

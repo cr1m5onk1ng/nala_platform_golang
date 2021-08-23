@@ -10,7 +10,7 @@ import (
 
 // JWTProtected func to specify routes group within JWT authentication.
 // See: https://github.com/gofiber/jwt
-func JWTProtected() func(*fiber.Ctx) error {
+func JWTProtected() fiber.Handler {
 	// Create config for JWT authentication middleware.
 	config := jwtMiddleware.Config{
 		SigningKey:   []byte(os.Getenv("JWT_SECRET_KEY")),
@@ -27,6 +27,7 @@ func jwtError(c *fiber.Ctx, err error) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":   true,
 			"message": err.Error(),
+			"data":    nil,
 		})
 	}
 
@@ -34,5 +35,6 @@ func jwtError(c *fiber.Ctx, err error) error {
 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 		"error":   true,
 		"message": err.Error(),
+		"data":    nil,
 	})
 }

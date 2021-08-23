@@ -9,23 +9,46 @@ import (
 	"time"
 )
 
+const addUserTargetLanguage = `-- name: AddUserTargetLanguage :one
+INSERT INTO learning (
+    user_id,
+    language
+) VALUES (
+    $1, $2
+) RETURNING user_id, language
+`
+
+type AddUserTargetLanguageParams struct {
+	UserID   string `json:"user_id"`
+	Language string `json:"language"`
+}
+
+func (q *Queries) AddUserTargetLanguage(ctx context.Context, arg AddUserTargetLanguageParams) (Learning, error) {
+	row := q.queryRow(ctx, q.addUserTargetLanguageStmt, addUserTargetLanguage, arg.UserID, arg.Language)
+	var i Learning
+	err := row.Scan(&i.UserID, &i.Language)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     id,
     username,
     email,
+    hashed_password,
     native_language,
     role
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6
 ) 
-RETURNING id, username, email, registration_date, native_language, role
+RETURNING id, username, email, hashed_password, password_changed_at, registration_date, native_language, role
 `
 
 type CreateUserParams struct {
 	ID             string         `json:"id"`
 	Username       string         `json:"username"`
 	Email          string         `json:"email"`
+	HashedPassword string         `json:"hashed_password"`
 	NativeLanguage string         `json:"native_language"`
 	Role           sql.NullString `json:"role"`
 }
@@ -35,6 +58,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.ID,
 		arg.Username,
 		arg.Email,
+		arg.HashedPassword,
 		arg.NativeLanguage,
 		arg.Role,
 	)
@@ -43,6 +67,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.ID,
 		&i.Username,
 		&i.Email,
+		&i.HashedPassword,
+		&i.PasswordChangedAt,
 		&i.RegistrationDate,
 		&i.NativeLanguage,
 		&i.Role,
@@ -51,7 +77,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getAllUsers = `-- name: GetAllUsers :many
-SELECT id, username, email, registration_date, native_language, role FROM users
+SELECT id, username, email, hashed_password, password_changed_at, registration_date, native_language, role FROM users
 ORDER BY id
 `
 
@@ -68,6 +94,8 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 			&i.ID,
 			&i.Username,
 			&i.Email,
+			&i.HashedPassword,
+			&i.PasswordChangedAt,
 			&i.RegistrationDate,
 			&i.NativeLanguage,
 			&i.Role,
@@ -86,7 +114,7 @@ func (q *Queries) GetAllUsers(ctx context.Context) ([]User, error) {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, username, email, registration_date, native_language, role FROM users 
+SELECT id, username, email, hashed_password, password_changed_at, registration_date, native_language, role FROM users 
 WHERE id = $1 LIMIT 1
 `
 
@@ -97,6 +125,29 @@ func (q *Queries) GetUser(ctx context.Context, id string) (User, error) {
 		&i.ID,
 		&i.Username,
 		&i.Email,
+		&i.HashedPassword,
+		&i.PasswordChangedAt,
+		&i.RegistrationDate,
+		&i.NativeLanguage,
+		&i.Role,
+	)
+	return i, err
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, username, email, hashed_password, password_changed_at, registration_date, native_language, role FROM users
+WHERE email = $1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.queryRow(ctx, q.getUserByEmailStmt, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.HashedPassword,
+		&i.PasswordChangedAt,
 		&i.RegistrationDate,
 		&i.NativeLanguage,
 		&i.Role,
@@ -105,7 +156,7 @@ func (q *Queries) GetUser(ctx context.Context, id string) (User, error) {
 }
 
 const getUserFollowers = `-- name: GetUserFollowers :many
-SELECT follower_id, followed_id, creation_time, id, username, email, registration_date, native_language, role FROM followers AS f
+SELECT follower_id, followed_id, creation_time, id, username, email, hashed_password, password_changed_at, registration_date, native_language, role FROM followers AS f
 JOIN users AS u
 ON u.id = f.followed_id
 WHERE u.id = $1 
@@ -113,15 +164,17 @@ ORDER BY u.registration_date DESC
 `
 
 type GetUserFollowersRow struct {
-	FollowerID       string         `json:"follower_id"`
-	FollowedID       string         `json:"followed_id"`
-	CreationTime     time.Time      `json:"creation_time"`
-	ID               string         `json:"id"`
-	Username         string         `json:"username"`
-	Email            string         `json:"email"`
-	RegistrationDate time.Time      `json:"registration_date"`
-	NativeLanguage   string         `json:"native_language"`
-	Role             sql.NullString `json:"role"`
+	FollowerID        string         `json:"follower_id"`
+	FollowedID        string         `json:"followed_id"`
+	CreationTime      time.Time      `json:"creation_time"`
+	ID                string         `json:"id"`
+	Username          string         `json:"username"`
+	Email             string         `json:"email"`
+	HashedPassword    string         `json:"hashed_password"`
+	PasswordChangedAt time.Time      `json:"password_changed_at"`
+	RegistrationDate  time.Time      `json:"registration_date"`
+	NativeLanguage    string         `json:"native_language"`
+	Role              sql.NullString `json:"role"`
 }
 
 func (q *Queries) GetUserFollowers(ctx context.Context, id string) ([]GetUserFollowersRow, error) {
@@ -140,6 +193,8 @@ func (q *Queries) GetUserFollowers(ctx context.Context, id string) ([]GetUserFol
 			&i.ID,
 			&i.Username,
 			&i.Email,
+			&i.HashedPassword,
+			&i.PasswordChangedAt,
 			&i.RegistrationDate,
 			&i.NativeLanguage,
 			&i.Role,
@@ -199,7 +254,7 @@ const updateUserLanguage = `-- name: UpdateUserLanguage :one
 UPDATE users 
 SET native_language = $2
 WHERE id = $1
-RETURNING id, username, email, registration_date, native_language, role
+RETURNING id, username, email, hashed_password, password_changed_at, registration_date, native_language, role
 `
 
 type UpdateUserLanguageParams struct {
@@ -214,6 +269,8 @@ func (q *Queries) UpdateUserLanguage(ctx context.Context, arg UpdateUserLanguage
 		&i.ID,
 		&i.Username,
 		&i.Email,
+		&i.HashedPassword,
+		&i.PasswordChangedAt,
 		&i.RegistrationDate,
 		&i.NativeLanguage,
 		&i.Role,
@@ -225,7 +282,7 @@ const updateUserRole = `-- name: UpdateUserRole :one
 UPDATE users 
 SET role = $2
 WHERE id = $1
-RETURNING id, username, email, registration_date, native_language, role
+RETURNING id, username, email, hashed_password, password_changed_at, registration_date, native_language, role
 `
 
 type UpdateUserRoleParams struct {
@@ -240,6 +297,8 @@ func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) 
 		&i.ID,
 		&i.Username,
 		&i.Email,
+		&i.HashedPassword,
+		&i.PasswordChangedAt,
 		&i.RegistrationDate,
 		&i.NativeLanguage,
 		&i.Role,

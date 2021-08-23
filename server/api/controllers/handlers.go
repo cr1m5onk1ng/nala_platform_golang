@@ -2,15 +2,19 @@ package controllers
 
 import (
 	rp "github.com/cr1m5onk1ng/nala_platform_app/repository"
+	"github.com/cr1m5onk1ng/nala_platform_app/util"
+	"github.com/cr1m5onk1ng/nala_platform_app/validation"
 	"github.com/gofiber/fiber/v2"
 )
 
 type Handlers struct {
-	Repo rp.Repository
+	Repo         rp.Repository
+	TokenManager validation.TokenManager
+	Config       util.Config
 }
 
-func NewHandlers(repo rp.Repository) *Handlers {
-	return &Handlers{Repo: repo}
+func NewHandlers(config util.Config, repo rp.Repository, tokenManager validation.TokenManager) (*Handlers, error) {
+	return &Handlers{Config: config, Repo: repo, TokenManager: tokenManager}, nil
 }
 
 func SendSuccessResponse(ctx *fiber.Ctx, statusCode int, payload interface{}) error {

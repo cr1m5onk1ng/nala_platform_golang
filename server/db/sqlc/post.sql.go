@@ -68,7 +68,7 @@ func (q *Queries) GetPostById(ctx context.Context, id string) (UserPost, error) 
 }
 
 const getPostDifficultyVotes = `-- name: GetPostDifficultyVotes :many
-SELECT user_id, post_id, difficulty from votes
+SELECT user_id, post_id, difficulty, comment from votes
 WHERE post_id = $1
 `
 
@@ -81,7 +81,12 @@ func (q *Queries) GetPostDifficultyVotes(ctx context.Context, postID string) ([]
 	items := []Vote{}
 	for rows.Next() {
 		var i Vote
-		if err := rows.Scan(&i.UserID, &i.PostID, &i.Difficulty); err != nil {
+		if err := rows.Scan(
+			&i.UserID,
+			&i.PostID,
+			&i.Difficulty,
+			&i.Comment,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -374,6 +379,61 @@ func (q *Queries) GetPostsByUser(ctx context.Context, arg GetPostsByUserParams) 
 	return items, nil
 }
 
+const getVote = `-- name: GetVote :one
+SELECT user_id, post_id, difficulty, comment FROM votes
+WHERE user_id = $1 AND post_id = $2
+`
+
+type GetVoteParams struct {
+	UserID string `json:"user_id"`
+	PostID string `json:"post_id"`
+}
+
+func (q *Queries) GetVote(ctx context.Context, arg GetVoteParams) (Vote, error) {
+	row := q.queryRow(ctx, q.getVoteStmt, getVote, arg.UserID, arg.PostID)
+	var i Vote
+	err := row.Scan(
+		&i.UserID,
+		&i.PostID,
+		&i.Difficulty,
+		&i.Comment,
+	)
+	return i, err
+}
+
+const getVotes = `-- name: GetVotes :many
+SELECT user_id, post_id, difficulty, comment FROM votes
+WHERE post_id = $1
+`
+
+func (q *Queries) GetVotes(ctx context.Context, postID string) ([]Vote, error) {
+	rows, err := q.query(ctx, q.getVotesStmt, getVotes, postID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Vote{}
+	for rows.Next() {
+		var i Vote
+		if err := rows.Scan(
+			&i.UserID,
+			&i.PostID,
+			&i.Difficulty,
+			&i.Comment,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const removePost = `-- name: RemovePost :exec
 DELETE FROM user_post 
 WHERE id = $1
@@ -391,6 +451,21 @@ WHERE user_id = $1
 
 func (q *Queries) RemoveUserPosts(ctx context.Context, userID string) error {
 	_, err := q.exec(ctx, q.removeUserPostsStmt, removeUserPosts, userID)
+	return err
+}
+
+const removeVote = `-- name: RemoveVote :exec
+DELETE FROM votes
+WHERE user_id = $1 AND post_id = $2
+`
+
+type RemoveVoteParams struct {
+	UserID string `json:"user_id"`
+	PostID string `json:"post_id"`
+}
+
+func (q *Queries) RemoveVote(ctx context.Context, arg RemoveVoteParams) error {
+	_, err := q.exec(ctx, q.removeVoteStmt, removeVote, arg.UserID, arg.PostID)
 	return err
 }
 
@@ -423,6 +498,72 @@ func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (UserPos
 		&i.PostTime,
 		&i.PostTitle,
 		&i.PostDescription,
+	)
+	return i, err
+}
+
+const updateVote = `-- name: UpdateVote :one
+UPDATE votes
+SET difficulty = $3, comment = $4
+WHERE user_id = $1 AND post_id = $2
+RETURNING user_id, post_id, difficulty, comment
+`
+
+type UpdateVoteParams struct {
+	UserID     string         `json:"user_id"`
+	PostID     string         `json:"post_id"`
+	Difficulty string         `json:"difficulty"`
+	Comment    sql.NullString `json:"comment"`
+}
+
+func (q *Queries) UpdateVote(ctx context.Context, arg UpdateVoteParams) (Vote, error) {
+	row := q.queryRow(ctx, q.updateVoteStmt, updateVote,
+		arg.UserID,
+		arg.PostID,
+		arg.Difficulty,
+		arg.Comment,
+	)
+	var i Vote
+	err := row.Scan(
+		&i.UserID,
+		&i.PostID,
+		&i.Difficulty,
+		&i.Comment,
+	)
+	return i, err
+}
+
+const votePost = `-- name: VotePost :one
+INSERT INTO votes (
+  user_id,
+  post_id,
+  difficulty,
+  comment
+) VALUES (
+  $1, $2, $3, $4
+) RETURNING user_id, post_id, difficulty, comment
+`
+
+type VotePostParams struct {
+	UserID     string         `json:"user_id"`
+	PostID     string         `json:"post_id"`
+	Difficulty string         `json:"difficulty"`
+	Comment    sql.NullString `json:"comment"`
+}
+
+func (q *Queries) VotePost(ctx context.Context, arg VotePostParams) (Vote, error) {
+	row := q.queryRow(ctx, q.votePostStmt, votePost,
+		arg.UserID,
+		arg.PostID,
+		arg.Difficulty,
+		arg.Comment,
+	)
+	var i Vote
+	err := row.Scan(
+		&i.UserID,
+		&i.PostID,
+		&i.Difficulty,
+		&i.Comment,
 	)
 	return i, err
 }

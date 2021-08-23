@@ -12,6 +12,7 @@ import (
 	"github.com/cr1m5onk1ng/nala_platform_app/api/routes"
 	repo "github.com/cr1m5onk1ng/nala_platform_app/repository"
 	"github.com/cr1m5onk1ng/nala_platform_app/util"
+	"github.com/cr1m5onk1ng/nala_platform_app/validation"
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/lib/pq"
 )
@@ -66,14 +67,21 @@ func main() {
 
 	repository := repo.NewRepository(database)
 
-	handlers := controllers.NewHandlers(repository)
+	tokenManager, err := validation.NewPasetoTokenManager(envConfig.TOKEN_SYMMETRIC_KEY)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	handlers, err := controllers.NewHandlers(envConfig, repository, tokenManager)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
 	// Routes definition.
 	//routes.SwaggerRoute(app)
-	routes.TokenRoutes(app)
 	routes.UserRoutes(app, handlers)
 	routes.PostRoutes(app, handlers)
-	routes.ResourceRoutes(app, handlers)
 	routes.NotFoundRoute(app)
 
 	StartServer(app, envConfig.SERVER_URL)

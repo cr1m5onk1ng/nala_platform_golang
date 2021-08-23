@@ -7,17 +7,20 @@ import (
 )
 
 func UserRoutes(app *fiber.App, handlers *controllers.Handlers) {
-	route := app.Group("/api/v1")
+	route := app.Group("/nala/v1")
 
 	// Routes for GET method:
-	route.Get("/users", handlers.GetAllUsers)
-	route.Get("/users/:id", handlers.GetUser)
+	route.Get("/users", middleware.PasetoProtected(handlers.TokenManager), handlers.GetAllUsers)
+	route.Get("/users/:id", middleware.PasetoProtected(handlers.TokenManager), handlers.GetUser)
 
 	// Routes for POST method:
-	//route.Post("/users", middleware.JWTProtected(), handlers.CreateUser)
-	route.Post("/users", handlers.CreateUserNotSecure)
+	route.Post("/users", handlers.CreateUser)
+
+	route.Post("/users/login", handlers.LoginUser)
+
+	route.Post("/users/targetLang", middleware.PasetoProtected(handlers.TokenManager), handlers.AddUserTargetLanguage)
 
 	// Routes for PATCH method
-	route.Patch("/users/:id", middleware.JWTProtected(), handlers.GetUser)
+	route.Patch("/users/:id", middleware.PasetoProtected(handlers.TokenManager), handlers.GetUser)
 
 }

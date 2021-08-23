@@ -6,7 +6,7 @@ import (
 )
 
 func TokenRoutes(app *fiber.App) {
-	route := app.Group("/api/v1")
+	route := app.Group("/nala/v1")
 
-	route.Get("/token/new", controllers.GetNewAccessToken)
+	route.Get("/token/new", controllers.GetNewJwtAccessToken)
 }

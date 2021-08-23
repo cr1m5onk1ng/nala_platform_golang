@@ -15,6 +15,8 @@ CREATE TABLE "users" (
   "id" varchar PRIMARY KEY,
   "username" varchar UNIQUE NOT NULL,
   "email" varchar UNIQUE NOT NULL,
+  "hashed_password" varchar NOT NULL,
+  "password_changed_at" timestamptz NOT NULL DEFAULT '0001-01-01 00:00:00+00',
   "registration_date" timestamptz NOT NULL DEFAULT 'now()',
   "native_language" char(2) NOT NULL,
   "role" varchar
@@ -29,7 +31,7 @@ CREATE TABLE "learning" (
 CREATE TABLE "user_post" (
   "id" varchar PRIMARY KEY,
   "user_id" varchar NOT NULL,
-  "resource_id" bigint NOT NULL,
+  "resource_id" bigint UNIQUE NOT NULL,
   "post_time" timestamptz NOT NULL DEFAULT 'now()',
   "post_title" varchar NOT NULL,
   "post_description" varchar
@@ -65,6 +67,7 @@ CREATE TABLE "votes" (
   "user_id" varchar NOT NULL,
   "post_id" varchar NOT NULL,
   "difficulty" varchar NOT NULL,
+  "comment" varchar,
   PRIMARY KEY ("user_id", "post_id")
 );
 
@@ -103,7 +106,8 @@ CREATE TABLE "study_lists" (
   "user_id" varchar NOT NULL,
   "creation_time" timestamptz NOT NULL DEFAULT 'now()',
   "title" varchar NOT NULL,
-  "description" varchar NOT NULL
+  "description" varchar NOT NULL,
+  "public" boolean NOT NULL DEFAULT 'true'
 );
 
 CREATE TABLE "study_list_resource" (

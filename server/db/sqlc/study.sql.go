@@ -37,7 +37,7 @@ INSERT INTO study_lists (
   description 
 ) VALUES (
     $1, $2, $3
-) RETURNING id, user_id, creation_time, title, description
+) RETURNING id, user_id, creation_time, title, description, public
 `
 
 type AddStudyListParams struct {
@@ -55,12 +55,13 @@ func (q *Queries) AddStudyList(ctx context.Context, arg AddStudyListParams) (Stu
 		&i.CreationTime,
 		&i.Title,
 		&i.Description,
+		&i.Public,
 	)
 	return i, err
 }
 
 const getStudyList = `-- name: GetStudyList :one
-SELECT id, user_id, creation_time, title, description FROM study_lists
+SELECT id, user_id, creation_time, title, description, public FROM study_lists
 WHERE id = $1
 `
 
@@ -73,6 +74,7 @@ func (q *Queries) GetStudyList(ctx context.Context, id int64) (StudyList, error)
 		&i.CreationTime,
 		&i.Title,
 		&i.Description,
+		&i.Public,
 	)
 	return i, err
 }
@@ -120,7 +122,7 @@ func (q *Queries) GetStudyListResources(ctx context.Context, studyListID int64) 
 }
 
 const getUserSavedResources = `-- name: GetUserSavedResources :many
-SELECT study_list_id, resource_id, time_added, r.id, url, language, difficulty, r.title, r.description, media_type, category, thumbnail_url, inserted_at, sl.id, user_id, creation_time, sl.title, sl.description FROM study_list_resource AS slr
+SELECT study_list_id, resource_id, time_added, r.id, url, language, difficulty, r.title, r.description, media_type, category, thumbnail_url, inserted_at, sl.id, user_id, creation_time, sl.title, sl.description, public FROM study_list_resource AS slr
 JOIN resources AS r
 ON r.id = slr.resource_id
 JOIN study_lists AS sl
@@ -148,6 +150,7 @@ type GetUserSavedResourcesRow struct {
 	CreationTime  time.Time      `json:"creation_time"`
 	Title_2       string         `json:"title_2"`
 	Description_2 string         `json:"description_2"`
+	Public        bool           `json:"public"`
 }
 
 func (q *Queries) GetUserSavedResources(ctx context.Context, userID string) ([]GetUserSavedResourcesRow, error) {
@@ -178,6 +181,7 @@ func (q *Queries) GetUserSavedResources(ctx context.Context, userID string) ([]G
 			&i.CreationTime,
 			&i.Title_2,
 			&i.Description_2,
+			&i.Public,
 		); err != nil {
 			return nil, err
 		}
@@ -193,7 +197,7 @@ func (q *Queries) GetUserSavedResources(ctx context.Context, userID string) ([]G
 }
 
 const getUserStudyLists = `-- name: GetUserStudyLists :many
-SELECT id, user_id, creation_time, title, description FROM study_lists
+SELECT id, user_id, creation_time, title, description, public FROM study_lists
 WHERE user_id = $1
 ORDER BY creation_time DESC
 `
@@ -213,6 +217,7 @@ func (q *Queries) GetUserStudyLists(ctx context.Context, userID string) ([]Study
 			&i.CreationTime,
 			&i.Title,
 			&i.Description,
+			&i.Public,
 		); err != nil {
 			return nil, err
 		}
@@ -261,7 +266,7 @@ const updateStudyList = `-- name: UpdateStudyList :one
 UPDATE study_lists
 SET title = $2, description = $3
 WHERE id = $1
-RETURNING id, user_id, creation_time, title, description
+RETURNING id, user_id, creation_time, title, description, public
 `
 
 type UpdateStudyListParams struct {
@@ -279,6 +284,7 @@ func (q *Queries) UpdateStudyList(ctx context.Context, arg UpdateStudyListParams
 		&i.CreationTime,
 		&i.Title,
 		&i.Description,
+		&i.Public,
 	)
 	return i, err
 }

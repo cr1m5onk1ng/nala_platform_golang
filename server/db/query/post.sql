@@ -77,3 +77,30 @@ WHERE id = $1;
 DELETE FROM user_post
 WHERE user_id = $1;
 
+-- name: VotePost :one
+INSERT INTO votes (
+  user_id,
+  post_id,
+  difficulty,
+  comment
+) VALUES (
+  $1, $2, $3, $4
+) RETURNING *;
+
+-- name: RemoveVote :exec
+DELETE FROM votes
+WHERE user_id = $1 AND post_id = $2;
+
+-- name: UpdateVote :one
+UPDATE votes
+SET difficulty = $3, comment = $4
+WHERE user_id = $1 AND post_id = $2
+RETURNING *; 
+
+-- name: GetVote :one
+SELECT * FROM votes
+WHERE user_id = $1 AND post_id = $2;
+
+-- name: GetVotes :many
+SELECT * FROM votes
+WHERE post_id = $1;

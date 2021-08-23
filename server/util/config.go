@@ -1,6 +1,10 @@
 package util
 
-import "github.com/spf13/viper"
+import (
+	"time"
+
+	"github.com/spf13/viper"
+)
 
 type Config struct {
 	DB_DRIVER                           string
@@ -11,7 +15,9 @@ type Config struct {
 	SERVER_URL                          string
 	SERVER_READ_TIMEOUT                 int
 	JWT_KEY                             string
-	JWT_SECRET_KEY_EXPIRE_MINUTES_COUNT int
+	JWT_SECRET_KEY_EXPIRE_MINUTES_COUNT time.Duration
+	TOKEN_SYMMETRIC_KEY                 string
+	PASETO_TOKEN_DURATION               time.Duration
 }
 
 func LoadConfig(path string) (config Config, err error) {

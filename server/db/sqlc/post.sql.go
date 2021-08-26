@@ -68,7 +68,7 @@ func (q *Queries) GetPostById(ctx context.Context, id string) (UserPost, error) 
 }
 
 const getPostDifficultyVotes = `-- name: GetPostDifficultyVotes :many
-SELECT user_id, post_id, difficulty, comment from votes
+SELECT user_id, post_id, difficulty from votes
 WHERE post_id = $1
 `
 
@@ -81,12 +81,7 @@ func (q *Queries) GetPostDifficultyVotes(ctx context.Context, postID string) ([]
 	items := []Vote{}
 	for rows.Next() {
 		var i Vote
-		if err := rows.Scan(
-			&i.UserID,
-			&i.PostID,
-			&i.Difficulty,
-			&i.Comment,
-		); err != nil {
+		if err := rows.Scan(&i.UserID, &i.PostID, &i.Difficulty); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -211,9 +206,9 @@ LIMIT $2 OFFSET $3
 `
 
 type GetPostsByDifficultyParams struct {
-	Difficulty sql.NullString `json:"difficulty"`
-	Limit      int32          `json:"limit"`
-	Offset     int32          `json:"offset"`
+	Difficulty string `json:"difficulty"`
+	Limit      int32  `json:"limit"`
+	Offset     int32  `json:"offset"`
 }
 
 func (q *Queries) GetPostsByDifficulty(ctx context.Context, arg GetPostsByDifficultyParams) ([]UserPost, error) {
@@ -301,9 +296,9 @@ LIMIT $2 OFFSET $3
 `
 
 type GetPostsByMediaTypeParams struct {
-	MediaType sql.NullString `json:"media_type"`
-	Limit     int32          `json:"limit"`
-	Offset    int32          `json:"offset"`
+	MediaType string `json:"media_type"`
+	Limit     int32  `json:"limit"`
+	Offset    int32  `json:"offset"`
 }
 
 func (q *Queries) GetPostsByMediaType(ctx context.Context, arg GetPostsByMediaTypeParams) ([]UserPost, error) {
@@ -380,7 +375,7 @@ func (q *Queries) GetPostsByUser(ctx context.Context, arg GetPostsByUserParams) 
 }
 
 const getVote = `-- name: GetVote :one
-SELECT user_id, post_id, difficulty, comment FROM votes
+SELECT user_id, post_id, difficulty FROM votes
 WHERE user_id = $1 AND post_id = $2
 `
 
@@ -392,17 +387,12 @@ type GetVoteParams struct {
 func (q *Queries) GetVote(ctx context.Context, arg GetVoteParams) (Vote, error) {
 	row := q.queryRow(ctx, q.getVoteStmt, getVote, arg.UserID, arg.PostID)
 	var i Vote
-	err := row.Scan(
-		&i.UserID,
-		&i.PostID,
-		&i.Difficulty,
-		&i.Comment,
-	)
+	err := row.Scan(&i.UserID, &i.PostID, &i.Difficulty)
 	return i, err
 }
 
 const getVotes = `-- name: GetVotes :many
-SELECT user_id, post_id, difficulty, comment FROM votes
+SELECT user_id, post_id, difficulty FROM votes
 WHERE post_id = $1
 `
 
@@ -415,12 +405,7 @@ func (q *Queries) GetVotes(ctx context.Context, postID string) ([]Vote, error) {
 	items := []Vote{}
 	for rows.Next() {
 		var i Vote
-		if err := rows.Scan(
-			&i.UserID,
-			&i.PostID,
-			&i.Difficulty,
-			&i.Comment,
-		); err != nil {
+		if err := rows.Scan(&i.UserID, &i.PostID, &i.Difficulty); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -504,32 +489,21 @@ func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (UserPos
 
 const updateVote = `-- name: UpdateVote :one
 UPDATE votes
-SET difficulty = $3, comment = $4
+SET difficulty = $3
 WHERE user_id = $1 AND post_id = $2
-RETURNING user_id, post_id, difficulty, comment
+RETURNING user_id, post_id, difficulty
 `
 
 type UpdateVoteParams struct {
-	UserID     string         `json:"user_id"`
-	PostID     string         `json:"post_id"`
-	Difficulty string         `json:"difficulty"`
-	Comment    sql.NullString `json:"comment"`
+	UserID     string `json:"user_id"`
+	PostID     string `json:"post_id"`
+	Difficulty string `json:"difficulty"`
 }
 
 func (q *Queries) UpdateVote(ctx context.Context, arg UpdateVoteParams) (Vote, error) {
-	row := q.queryRow(ctx, q.updateVoteStmt, updateVote,
-		arg.UserID,
-		arg.PostID,
-		arg.Difficulty,
-		arg.Comment,
-	)
+	row := q.queryRow(ctx, q.updateVoteStmt, updateVote, arg.UserID, arg.PostID, arg.Difficulty)
 	var i Vote
-	err := row.Scan(
-		&i.UserID,
-		&i.PostID,
-		&i.Difficulty,
-		&i.Comment,
-	)
+	err := row.Scan(&i.UserID, &i.PostID, &i.Difficulty)
 	return i, err
 }
 
@@ -537,33 +511,21 @@ const votePost = `-- name: VotePost :one
 INSERT INTO votes (
   user_id,
   post_id,
-  difficulty,
-  comment
+  difficulty
 ) VALUES (
-  $1, $2, $3, $4
-) RETURNING user_id, post_id, difficulty, comment
+  $1, $2, $3
+) RETURNING user_id, post_id, difficulty
 `
 
 type VotePostParams struct {
-	UserID     string         `json:"user_id"`
-	PostID     string         `json:"post_id"`
-	Difficulty string         `json:"difficulty"`
-	Comment    sql.NullString `json:"comment"`
+	UserID     string `json:"user_id"`
+	PostID     string `json:"post_id"`
+	Difficulty string `json:"difficulty"`
 }
 
 func (q *Queries) VotePost(ctx context.Context, arg VotePostParams) (Vote, error) {
-	row := q.queryRow(ctx, q.votePostStmt, votePost,
-		arg.UserID,
-		arg.PostID,
-		arg.Difficulty,
-		arg.Comment,
-	)
+	row := q.queryRow(ctx, q.votePostStmt, votePost, arg.UserID, arg.PostID, arg.Difficulty)
 	var i Vote
-	err := row.Scan(
-		&i.UserID,
-		&i.PostID,
-		&i.Difficulty,
-		&i.Comment,
-	)
+	err := row.Scan(&i.UserID, &i.PostID, &i.Difficulty)
 	return i, err
 }

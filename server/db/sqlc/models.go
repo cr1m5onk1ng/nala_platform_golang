@@ -7,36 +7,18 @@ import (
 	"time"
 )
 
-type Comment struct {
-	ID          int64     `json:"id"`
-	UserID      string    `json:"user_id"`
-	PostID      string    `json:"post_id"`
-	Content     string    `json:"content"`
-	CommentTime time.Time `json:"comment_time"`
-}
-
 type CommentsLike struct {
 	CommentID int64  `json:"comment_id"`
 	UserID    string `json:"user_id"`
 }
 
-type CommentsResponse struct {
-	SourceCommentID   int64 `json:"source_comment_id"`
-	ResponseCommentID int64 `json:"response_comment_id"`
-}
-
 type DiscussionComment struct {
-	ID           int64          `json:"id"`
-	DiscussionID int64          `json:"discussion_id"`
-	UserID       string         `json:"user_id"`
-	CreationTime time.Time      `json:"creation_time"`
-	Content      sql.NullString `json:"content"`
-}
-
-type Follower struct {
-	FollowerID   string    `json:"follower_id"`
-	FollowedID   string    `json:"followed_id"`
-	CreationTime time.Time `json:"creation_time"`
+	ID              int64         `json:"id"`
+	DiscussionID    int64         `json:"discussion_id"`
+	ParentCommentID sql.NullInt64 `json:"parent_comment_id"`
+	UserID          string        `json:"user_id"`
+	CreationTime    time.Time     `json:"creation_time"`
+	Content         string        `json:"content"`
 }
 
 type Learning struct {
@@ -49,27 +31,23 @@ type Like struct {
 	PostID string `json:"post_id"`
 }
 
-type Resource struct {
-	ID  int64  `json:"id"`
-	Url string `json:"url"`
-	// 2 chars language code
-	Language     string         `json:"language"`
-	Difficulty   sql.NullString `json:"difficulty"`
-	Title        string         `json:"title"`
-	Description  sql.NullString `json:"description"`
-	MediaType    sql.NullString `json:"media_type"`
-	Category     string         `json:"category"`
-	ThumbnailUrl sql.NullString `json:"thumbnail_url"`
-	InsertedAt   time.Time      `json:"inserted_at"`
-}
-
-type ResourceDiscussion struct {
+type PostDiscussion struct {
 	ID           int64          `json:"id"`
 	CreatorID    string         `json:"creator_id"`
 	PostID       string         `json:"post_id"`
 	CreationTime time.Time      `json:"creation_time"`
 	Title        string         `json:"title"`
 	Description  sql.NullString `json:"description"`
+}
+
+type Resource struct {
+	ID  int64  `json:"id"`
+	Url string `json:"url"`
+	// 2 chars language code
+	Language   string `json:"language"`
+	Difficulty string `json:"difficulty"`
+	MediaType  string `json:"media_type"`
+	Category   string `json:"category"`
 }
 
 type StudyList struct {
@@ -105,6 +83,18 @@ type User struct {
 	Role           sql.NullString `json:"role"`
 }
 
+type UserFollow struct {
+	FollowerUserID string    `json:"follower_user_id"`
+	FollowedUserID string    `json:"followed_user_id"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type UserIsFollowed struct {
+	FollowedUserID string    `json:"followed_user_id"`
+	FollowerUserID string    `json:"follower_user_id"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
 type UserPost struct {
 	// use UUID
 	ID              string         `json:"id"`
@@ -116,8 +106,7 @@ type UserPost struct {
 }
 
 type Vote struct {
-	UserID     string         `json:"user_id"`
-	PostID     string         `json:"post_id"`
-	Difficulty string         `json:"difficulty"`
-	Comment    sql.NullString `json:"comment"`
+	UserID     string `json:"user_id"`
+	PostID     string `json:"post_id"`
+	Difficulty string `json:"difficulty"`
 }

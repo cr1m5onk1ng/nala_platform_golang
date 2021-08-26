@@ -7,27 +7,24 @@ import (
 )
 
 type Querier interface {
-	AddComment(ctx context.Context, arg AddCommentParams) (Comment, error)
-	AddCommentAsResponse(ctx context.Context, arg AddCommentAsResponseParams) error
+	AddComment(ctx context.Context, arg AddCommentParams) (DiscussionComment, error)
 	AddPost(ctx context.Context, arg AddPostParams) (UserPost, error)
-	AddPostDiscussion(ctx context.Context, arg AddPostDiscussionParams) (ResourceDiscussion, error)
+	AddPostDiscussion(ctx context.Context, arg AddPostDiscussionParams) (PostDiscussion, error)
 	AddResource(ctx context.Context, arg AddResourceParams) (Resource, error)
 	AddResourceToStudyList(ctx context.Context, arg AddResourceToStudyListParams) (StudyListResource, error)
 	AddStudyList(ctx context.Context, arg AddStudyListParams) (StudyList, error)
 	AddUserTargetLanguage(ctx context.Context, arg AddUserTargetLanguageParams) (Learning, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	GetAllPostComments(ctx context.Context, arg GetAllPostCommentsParams) ([]Comment, error)
-	GetAllUserComments(ctx context.Context, arg GetAllUserCommentsParams) ([]Comment, error)
-	GetAllUserPostComments(ctx context.Context, arg GetAllUserPostCommentsParams) ([]Comment, error)
+	GetAllPostComments(ctx context.Context, arg GetAllPostCommentsParams) ([]DiscussionComment, error)
+	GetAllUserComments(ctx context.Context, arg GetAllUserCommentsParams) ([]DiscussionComment, error)
+	GetAllUserPostComments(ctx context.Context, arg GetAllUserPostCommentsParams) ([]DiscussionComment, error)
 	GetAllUsers(ctx context.Context) ([]User, error)
-	GetCommentDirectResponses(ctx context.Context, arg GetCommentDirectResponsesParams) ([]GetCommentDirectResponsesRow, error)
+	GetCommentDirectResponses(ctx context.Context, arg GetCommentDirectResponsesParams) ([]DiscussionComment, error)
 	GetCommentLikes(ctx context.Context, commentID int64) ([]CommentsLike, error)
-	GetDiscussionComments(ctx context.Context, discussionID int64) ([]DiscussionComment, error)
-	GetDiscussionCommentsByUser(ctx context.Context, userID string) ([]DiscussionComment, error)
 	GetPostById(ctx context.Context, id string) (UserPost, error)
 	GetPostDifficultyVotes(ctx context.Context, postID string) ([]Vote, error)
-	GetPostDiscussions(ctx context.Context, postID string) ([]ResourceDiscussion, error)
-	GetPostDiscussionsByUser(ctx context.Context, creatorID string) ([]ResourceDiscussion, error)
+	GetPostDiscussions(ctx context.Context, postID string) ([]PostDiscussion, error)
+	GetPostDiscussionsByUser(ctx context.Context, creatorID string) ([]PostDiscussion, error)
 	GetPostLikes(ctx context.Context, postID string) ([]Like, error)
 	GetPostTags(ctx context.Context, postID string) ([]Tag, error)
 	GetPostsByCategory(ctx context.Context, arg GetPostsByCategoryParams) ([]UserPost, error)
@@ -50,13 +47,10 @@ type Querier interface {
 	GetUserTargetLanguages(ctx context.Context, userID string) ([]Learning, error)
 	GetVote(ctx context.Context, arg GetVoteParams) (Vote, error)
 	GetVotes(ctx context.Context, postID string) ([]Vote, error)
-	RemoveAllDiscussionComments(ctx context.Context, discussionID int64) error
 	RemoveAllUserStudyLists(ctx context.Context, userID string) error
 	RemoveComment(ctx context.Context, id int64) error
-	RemoveDiscussionComment(ctx context.Context, id int64) error
-	RemoveDiscussionCommentsByUser(ctx context.Context, arg RemoveDiscussionCommentsByUserParams) error
+	RemoveDiscussionComments(ctx context.Context, discussionID int64) error
 	RemovePost(ctx context.Context, id string) error
-	RemovePostComments(ctx context.Context, postID string) error
 	RemovePostDiscussion(ctx context.Context, id int64) error
 	RemovePostDiscussionsByCreator(ctx context.Context, creatorID string) error
 	RemoveResourceFromStudyList(ctx context.Context, resourceID int64) error
@@ -65,9 +59,8 @@ type Querier interface {
 	RemoveUserComments(ctx context.Context, userID string) error
 	RemoveUserPosts(ctx context.Context, userID string) error
 	RemoveVote(ctx context.Context, arg RemoveVoteParams) error
-	UpdateDiscussionComment(ctx context.Context, arg UpdateDiscussionCommentParams) (DiscussionComment, error)
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (UserPost, error)
-	UpdatePostDiscussion(ctx context.Context, arg UpdatePostDiscussionParams) (ResourceDiscussion, error)
+	UpdatePostDiscussion(ctx context.Context, arg UpdatePostDiscussionParams) (PostDiscussion, error)
 	UpdateResource(ctx context.Context, arg UpdateResourceParams) (Resource, error)
 	UpdateStudyList(ctx context.Context, arg UpdateStudyListParams) (StudyList, error)
 	UpdateUserLanguage(ctx context.Context, arg UpdateUserLanguageParams) (User, error)

@@ -24,9 +24,9 @@ SELECT * FROM users
 ORDER BY id;
 
 -- name: GetUserFollowers :many
-SELECT * FROM followers AS f
-JOIN users AS u
-ON u.id = f.followed_id
+SELECT * FROM users AS u
+JOIN user_is_followed AS f
+ON u.id = f.followed_user_id
 WHERE u.id = $1 
 ORDER BY u.registration_date DESC;
 

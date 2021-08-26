@@ -5,7 +5,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"time"
 )
 
@@ -80,7 +79,7 @@ func (q *Queries) GetStudyList(ctx context.Context, id int64) (StudyList, error)
 }
 
 const getStudyListResources = `-- name: GetStudyListResources :many
-SELECT r.id, r.url, r.language, r.difficulty, r.title, r.description, r.media_type, r.category, r.thumbnail_url, r.inserted_at FROM study_list_resource AS slr
+SELECT r.id, r.url, r.language, r.difficulty, r.media_type, r.category FROM study_list_resource AS slr
 JOIN resources r
 ON r.id = slr.resource_id
 WHERE slr.study_list_id = $1
@@ -101,12 +100,8 @@ func (q *Queries) GetStudyListResources(ctx context.Context, studyListID int64) 
 			&i.Url,
 			&i.Language,
 			&i.Difficulty,
-			&i.Title,
-			&i.Description,
 			&i.MediaType,
 			&i.Category,
-			&i.ThumbnailUrl,
-			&i.InsertedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -122,7 +117,7 @@ func (q *Queries) GetStudyListResources(ctx context.Context, studyListID int64) 
 }
 
 const getUserSavedResources = `-- name: GetUserSavedResources :many
-SELECT study_list_id, resource_id, time_added, r.id, url, language, difficulty, r.title, r.description, media_type, category, thumbnail_url, inserted_at, sl.id, user_id, creation_time, sl.title, sl.description, public FROM study_list_resource AS slr
+SELECT study_list_id, resource_id, time_added, r.id, url, language, difficulty, media_type, category, sl.id, user_id, creation_time, title, description, public FROM study_list_resource AS slr
 JOIN resources AS r
 ON r.id = slr.resource_id
 JOIN study_lists AS sl
@@ -132,25 +127,21 @@ ORDER BY slr.time_added DESC
 `
 
 type GetUserSavedResourcesRow struct {
-	StudyListID   int64          `json:"study_list_id"`
-	ResourceID    int64          `json:"resource_id"`
-	TimeAdded     time.Time      `json:"time_added"`
-	ID            int64          `json:"id"`
-	Url           string         `json:"url"`
-	Language      string         `json:"language"`
-	Difficulty    sql.NullString `json:"difficulty"`
-	Title         string         `json:"title"`
-	Description   sql.NullString `json:"description"`
-	MediaType     sql.NullString `json:"media_type"`
-	Category      string         `json:"category"`
-	ThumbnailUrl  sql.NullString `json:"thumbnail_url"`
-	InsertedAt    time.Time      `json:"inserted_at"`
-	ID_2          int64          `json:"id_2"`
-	UserID        string         `json:"user_id"`
-	CreationTime  time.Time      `json:"creation_time"`
-	Title_2       string         `json:"title_2"`
-	Description_2 string         `json:"description_2"`
-	Public        bool           `json:"public"`
+	StudyListID  int64     `json:"study_list_id"`
+	ResourceID   int64     `json:"resource_id"`
+	TimeAdded    time.Time `json:"time_added"`
+	ID           int64     `json:"id"`
+	Url          string    `json:"url"`
+	Language     string    `json:"language"`
+	Difficulty   string    `json:"difficulty"`
+	MediaType    string    `json:"media_type"`
+	Category     string    `json:"category"`
+	ID_2         int64     `json:"id_2"`
+	UserID       string    `json:"user_id"`
+	CreationTime time.Time `json:"creation_time"`
+	Title        string    `json:"title"`
+	Description  string    `json:"description"`
+	Public       bool      `json:"public"`
 }
 
 func (q *Queries) GetUserSavedResources(ctx context.Context, userID string) ([]GetUserSavedResourcesRow, error) {
@@ -170,17 +161,13 @@ func (q *Queries) GetUserSavedResources(ctx context.Context, userID string) ([]G
 			&i.Url,
 			&i.Language,
 			&i.Difficulty,
-			&i.Title,
-			&i.Description,
 			&i.MediaType,
 			&i.Category,
-			&i.ThumbnailUrl,
-			&i.InsertedAt,
 			&i.ID_2,
 			&i.UserID,
 			&i.CreationTime,
-			&i.Title_2,
-			&i.Description_2,
+			&i.Title,
+			&i.Description,
 			&i.Public,
 		); err != nil {
 			return nil, err

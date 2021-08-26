@@ -2,14 +2,11 @@
 INSERT INTO resources (
   url, 
   language, 
-  difficulty, 
-  title, 
-  description, 
+  difficulty,
   media_type, 
-  category, 
-  thumbnail_url   
+  category
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8
+    $1, $2, $3, $4, $5
 ) RETURNING *;
 
 -- name: GetResourceById :one
@@ -38,7 +35,7 @@ LIMIT 1;
 
 -- name: UpdateResource :one
 UPDATE resources
-SET url = $2, language = $3, difficulty = $4, title = $5, description = $6, media_type = $7, category = $8, thumbnail_url = $9
+SET url = $2, language = $3, difficulty = $4, media_type = $5, category = $6
 WHERE id = $1
 RETURNING *; 
 

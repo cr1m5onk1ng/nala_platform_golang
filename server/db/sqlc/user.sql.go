@@ -156,17 +156,14 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserFollowers = `-- name: GetUserFollowers :many
-SELECT follower_id, followed_id, creation_time, id, username, email, hashed_password, password_changed_at, registration_date, native_language, role FROM followers AS f
-JOIN users AS u
-ON u.id = f.followed_id
+SELECT id, username, email, hashed_password, password_changed_at, registration_date, native_language, role, followed_user_id, follower_user_id, updated_at FROM users AS u
+JOIN user_is_followed AS f
+ON u.id = f.followed_user_id
 WHERE u.id = $1 
 ORDER BY u.registration_date DESC
 `
 
 type GetUserFollowersRow struct {
-	FollowerID        string         `json:"follower_id"`
-	FollowedID        string         `json:"followed_id"`
-	CreationTime      time.Time      `json:"creation_time"`
 	ID                string         `json:"id"`
 	Username          string         `json:"username"`
 	Email             string         `json:"email"`
@@ -175,6 +172,9 @@ type GetUserFollowersRow struct {
 	RegistrationDate  time.Time      `json:"registration_date"`
 	NativeLanguage    string         `json:"native_language"`
 	Role              sql.NullString `json:"role"`
+	FollowedUserID    string         `json:"followed_user_id"`
+	FollowerUserID    string         `json:"follower_user_id"`
+	UpdatedAt         time.Time      `json:"updated_at"`
 }
 
 func (q *Queries) GetUserFollowers(ctx context.Context, id string) ([]GetUserFollowersRow, error) {
@@ -187,9 +187,6 @@ func (q *Queries) GetUserFollowers(ctx context.Context, id string) ([]GetUserFol
 	for rows.Next() {
 		var i GetUserFollowersRow
 		if err := rows.Scan(
-			&i.FollowerID,
-			&i.FollowedID,
-			&i.CreationTime,
 			&i.ID,
 			&i.Username,
 			&i.Email,
@@ -198,6 +195,9 @@ func (q *Queries) GetUserFollowers(ctx context.Context, id string) ([]GetUserFol
 			&i.RegistrationDate,
 			&i.NativeLanguage,
 			&i.Role,
+			&i.FollowedUserID,
+			&i.FollowerUserID,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}

@@ -81,10 +81,9 @@ WHERE user_id = $1;
 INSERT INTO votes (
   user_id,
   post_id,
-  difficulty,
-  comment
+  difficulty
 ) VALUES (
-  $1, $2, $3, $4
+  $1, $2, $3
 ) RETURNING *;
 
 -- name: RemoveVote :exec
@@ -93,7 +92,7 @@ WHERE user_id = $1 AND post_id = $2;
 
 -- name: UpdateVote :one
 UPDATE votes
-SET difficulty = $3, comment = $4
+SET difficulty = $3
 WHERE user_id = $1 AND post_id = $2
 RETURNING *; 
 

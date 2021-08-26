@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"database/sql"
 	"strconv"
 
 	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
@@ -137,14 +136,11 @@ func (h *Handlers) AddResource(ctx *fiber.Ctx) error {
 	}
 
 	args := db.AddResourceParams{
-		Url:          resource.Url,
-		Language:     resource.Language,
-		Difficulty:   sql.NullString{String: resource.Difficulty, Valid: true},
-		Title:        resource.Title,
-		Description:  sql.NullString{String: resource.Description, Valid: true},
-		MediaType:    sql.NullString{String: resource.MediaType, Valid: true},
-		Category:     resource.Category,
-		ThumbnailUrl: sql.NullString{String: resource.ThumbnailUrl, Valid: true},
+		Url:        resource.Url,
+		Language:   resource.Language,
+		Difficulty: resource.Difficulty,
+		MediaType:  resource.MediaType,
+		Category:   resource.Category,
 	}
 	addedResource, err := h.Repo.AddResource(ctx.Context(), args)
 
@@ -174,14 +170,11 @@ func (h *Handlers) AddResourceNotSecure(ctx *fiber.Ctx) error {
 	}
 
 	args := db.AddResourceParams{
-		Url:          resource.Url,
-		Language:     resource.Language,
-		Difficulty:   sql.NullString{String: resource.Difficulty, Valid: true},
-		Title:        resource.Title,
-		Description:  sql.NullString{String: resource.Description, Valid: true},
-		MediaType:    sql.NullString{String: resource.MediaType, Valid: true},
-		Category:     resource.Category,
-		ThumbnailUrl: sql.NullString{String: resource.ThumbnailUrl, Valid: true},
+		Url:        resource.Url,
+		Language:   resource.Language,
+		Difficulty: resource.Difficulty,
+		MediaType:  resource.MediaType,
+		Category:   resource.Category,
 	}
 	addedResource, err := h.Repo.AddResource(ctx.Context(), args)
 
@@ -211,14 +204,11 @@ func (h *Handlers) UpdateResource(ctx *fiber.Ctx) error {
 	}
 
 	args := db.UpdateResourceParams{
-		Url:          resource.Url,
-		Language:     resource.Language,
-		Difficulty:   sql.NullString{String: resource.Difficulty, Valid: true},
-		Title:        resource.Title,
-		Description:  sql.NullString{String: resource.Description, Valid: true},
-		MediaType:    sql.NullString{String: resource.MediaType, Valid: true},
-		Category:     resource.Category,
-		ThumbnailUrl: sql.NullString{String: resource.ThumbnailUrl, Valid: true},
+		Url:        resource.Url,
+		Language:   resource.Language,
+		Difficulty: resource.Difficulty,
+		MediaType:  resource.MediaType,
+		Category:   resource.Category,
 	}
 
 	editedResource, err := h.Repo.UpdateResourceTrans(ctx.Context(), args)

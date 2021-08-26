@@ -5,33 +5,26 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
 const addResource = `-- name: AddResource :one
 INSERT INTO resources (
   url, 
   language, 
-  difficulty, 
-  title, 
-  description, 
+  difficulty,
   media_type, 
-  category, 
-  thumbnail_url   
+  category
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8
-) RETURNING id, url, language, difficulty, title, description, media_type, category, thumbnail_url, inserted_at
+    $1, $2, $3, $4, $5
+) RETURNING id, url, language, difficulty, media_type, category
 `
 
 type AddResourceParams struct {
-	Url          string         `json:"url"`
-	Language     string         `json:"language"`
-	Difficulty   sql.NullString `json:"difficulty"`
-	Title        string         `json:"title"`
-	Description  sql.NullString `json:"description"`
-	MediaType    sql.NullString `json:"media_type"`
-	Category     string         `json:"category"`
-	ThumbnailUrl sql.NullString `json:"thumbnail_url"`
+	Url        string `json:"url"`
+	Language   string `json:"language"`
+	Difficulty string `json:"difficulty"`
+	MediaType  string `json:"media_type"`
+	Category   string `json:"category"`
 }
 
 func (q *Queries) AddResource(ctx context.Context, arg AddResourceParams) (Resource, error) {
@@ -39,11 +32,8 @@ func (q *Queries) AddResource(ctx context.Context, arg AddResourceParams) (Resou
 		arg.Url,
 		arg.Language,
 		arg.Difficulty,
-		arg.Title,
-		arg.Description,
 		arg.MediaType,
 		arg.Category,
-		arg.ThumbnailUrl,
 	)
 	var i Resource
 	err := row.Scan(
@@ -51,18 +41,14 @@ func (q *Queries) AddResource(ctx context.Context, arg AddResourceParams) (Resou
 		&i.Url,
 		&i.Language,
 		&i.Difficulty,
-		&i.Title,
-		&i.Description,
 		&i.MediaType,
 		&i.Category,
-		&i.ThumbnailUrl,
-		&i.InsertedAt,
 	)
 	return i, err
 }
 
 const getResourceById = `-- name: GetResourceById :one
-SELECT id, url, language, difficulty, title, description, media_type, category, thumbnail_url, inserted_at FROM resources
+SELECT id, url, language, difficulty, media_type, category FROM resources
 WHERE id = $1
 `
 
@@ -74,18 +60,14 @@ func (q *Queries) GetResourceById(ctx context.Context, id int64) (Resource, erro
 		&i.Url,
 		&i.Language,
 		&i.Difficulty,
-		&i.Title,
-		&i.Description,
 		&i.MediaType,
 		&i.Category,
-		&i.ThumbnailUrl,
-		&i.InsertedAt,
 	)
 	return i, err
 }
 
 const getResourceByUrl = `-- name: GetResourceByUrl :one
-SELECT id, url, language, difficulty, title, description, media_type, category, thumbnail_url, inserted_at FROM resources
+SELECT id, url, language, difficulty, media_type, category FROM resources
 WHERE url = $1 
 LIMIT 1
 `
@@ -98,12 +80,8 @@ func (q *Queries) GetResourceByUrl(ctx context.Context, url string) (Resource, e
 		&i.Url,
 		&i.Language,
 		&i.Difficulty,
-		&i.Title,
-		&i.Description,
 		&i.MediaType,
 		&i.Category,
-		&i.ThumbnailUrl,
-		&i.InsertedAt,
 	)
 	return i, err
 }
@@ -129,7 +107,7 @@ func (q *Queries) GetResourcePost(ctx context.Context, resourceID int64) (UserPo
 }
 
 const getResourcesByLanguage = `-- name: GetResourcesByLanguage :many
-SELECT id, url, language, difficulty, title, description, media_type, category, thumbnail_url, inserted_at FROM resources
+SELECT id, url, language, difficulty, media_type, category FROM resources
 WHERE language = $1
 ORDER BY inserted_at DESC
 `
@@ -148,12 +126,8 @@ func (q *Queries) GetResourcesByLanguage(ctx context.Context, language string) (
 			&i.Url,
 			&i.Language,
 			&i.Difficulty,
-			&i.Title,
-			&i.Description,
 			&i.MediaType,
 			&i.Category,
-			&i.ThumbnailUrl,
-			&i.InsertedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -206,21 +180,18 @@ func (q *Queries) GetResourcesPostsByUser(ctx context.Context, userID string) ([
 
 const updateResource = `-- name: UpdateResource :one
 UPDATE resources
-SET url = $2, language = $3, difficulty = $4, title = $5, description = $6, media_type = $7, category = $8, thumbnail_url = $9
+SET url = $2, language = $3, difficulty = $4, media_type = $5, category = $6
 WHERE id = $1
-RETURNING id, url, language, difficulty, title, description, media_type, category, thumbnail_url, inserted_at
+RETURNING id, url, language, difficulty, media_type, category
 `
 
 type UpdateResourceParams struct {
-	ID           int64          `json:"id"`
-	Url          string         `json:"url"`
-	Language     string         `json:"language"`
-	Difficulty   sql.NullString `json:"difficulty"`
-	Title        string         `json:"title"`
-	Description  sql.NullString `json:"description"`
-	MediaType    sql.NullString `json:"media_type"`
-	Category     string         `json:"category"`
-	ThumbnailUrl sql.NullString `json:"thumbnail_url"`
+	ID         int64  `json:"id"`
+	Url        string `json:"url"`
+	Language   string `json:"language"`
+	Difficulty string `json:"difficulty"`
+	MediaType  string `json:"media_type"`
+	Category   string `json:"category"`
 }
 
 func (q *Queries) UpdateResource(ctx context.Context, arg UpdateResourceParams) (Resource, error) {
@@ -229,11 +200,8 @@ func (q *Queries) UpdateResource(ctx context.Context, arg UpdateResourceParams) 
 		arg.Url,
 		arg.Language,
 		arg.Difficulty,
-		arg.Title,
-		arg.Description,
 		arg.MediaType,
 		arg.Category,
-		arg.ThumbnailUrl,
 	)
 	var i Resource
 	err := row.Scan(
@@ -241,12 +209,8 @@ func (q *Queries) UpdateResource(ctx context.Context, arg UpdateResourceParams) 
 		&i.Url,
 		&i.Language,
 		&i.Difficulty,
-		&i.Title,
-		&i.Description,
 		&i.MediaType,
 		&i.Category,
-		&i.ThumbnailUrl,
-		&i.InsertedAt,
 	)
 	return i, err
 }

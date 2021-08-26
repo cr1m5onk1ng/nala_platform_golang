@@ -82,13 +82,8 @@ func (h *Handlers) GetPostsByDifficulty(ctx *fiber.Ctx) error {
 		SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
 
-	nullableDifficulty := sql.NullString{
-		String: difficulty,
-		Valid:  true,
-	}
-
 	args := db.GetPostsByDifficultyParams{
-		Difficulty: nullableDifficulty,
+		Difficulty: difficulty,
 		Limit:      constants.LIMIT,
 		Offset:     constants.OFFSET,
 	}
@@ -170,13 +165,9 @@ func (h *Handlers) GetPostsByMediaType(ctx *fiber.Ctx) error {
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
-	nullableMediaType := sql.NullString{
-		String: mediaType,
-		Valid:  true,
-	}
 
 	args := db.GetPostsByMediaTypeParams{
-		MediaType: nullableMediaType,
+		MediaType: mediaType,
 		Limit:     constants.LIMIT,
 		Offset:    constants.OFFSET,
 	}
@@ -439,7 +430,6 @@ func (h *Handlers) VotePost(ctx *fiber.Ctx) error {
 		UserID:     vote.UserID,
 		PostID:     vote.PostID,
 		Difficulty: vote.Difficulty,
-		Comment:    vote.Comment,
 	}
 
 	addedVote, err := h.Repo.VotePost(ctx.Context(), args)
@@ -476,7 +466,6 @@ func (h *Handlers) UpdateVote(ctx *fiber.Ctx) error {
 		UserID:     vote.UserID,
 		PostID:     vote.PostID,
 		Difficulty: vote.Difficulty,
-		Comment:    vote.Comment,
 	}
 	editedVote, err := h.Repo.UpdateVote(ctx.Context(), args)
 

@@ -1,27 +1,27 @@
+## BUILD ##
+
 FROM golang:1.16-alpine AS builder
-# Move to working directory (/build).
-WORKDIR /build
-
-# Copy and download dependency using go mod.
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copy the code into the container.
+WORKDIR /nala
 COPY . .
+# Compile go dependencies
+RUN go build -o main main.go
+# Install migrate dependencies
+RUN apk --no-cache add curl
+RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.14.1/migrate.linux-amd64.tar.gz | tar xvz
 
-# Set necessary environment variables needed for our image 
-# and build the API server.
-ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-RUN go build -ldflags="-s -w" -o apiserver .
+## RUN ##
 
 FROM scratch
-
-# Copy binary and config files from /build 
-# to root folder of scratch container.
-COPY --from=builder ["/build/apiserver", "/build/.env", "/"]
+WORKDIR /nala
+COPY --from=builder /nala/main .
+COPY --from=builder /nala/migrate.linux-amd64 ./migrate
+COPY app.env .
+COPY start.sh .
+COPY db/migration ./migration
 
 # Export necessary port.
-EXPOSE 5000
+EXPOSE 8080
 
 # Command to run when starting the container.
-ENTRYPOINT ["/apiserver"]
+CMD [ "/nala/main" ]
+ENTRYPOINT [ "/nala/start.sh" ]

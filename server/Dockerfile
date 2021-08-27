@@ -1,8 +1,11 @@
 ## BUILD ##
 
-FROM golang:1.16-alpine AS builder
-WORKDIR /nala
+FROM golang:1.16-alpine3.13 AS builder
+
+WORKDIR /nala/
+
 COPY . .
+
 # Compile go dependencies
 RUN go build -o main main.go
 # Install migrate dependencies
@@ -11,8 +14,12 @@ RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.14.1/
 
 ## RUN ##
 
-FROM scratch
-WORKDIR /nala
+FROM alpine:3.13 AS runtime
+
+USER 1000
+
+WORKDIR /nala/
+
 COPY --from=builder /nala/main .
 COPY --from=builder /nala/migrate.linux-amd64 ./migrate
 COPY app.env .

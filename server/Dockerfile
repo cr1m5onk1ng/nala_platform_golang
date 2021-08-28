@@ -2,7 +2,7 @@
 
 FROM golang:1.16-alpine3.13 AS builder
 
-WORKDIR /nala/
+WORKDIR /build/
 
 COPY . .
 
@@ -20,15 +20,13 @@ USER 1000
 
 WORKDIR /nala/
 
-COPY --from=builder /nala/main .
-COPY --from=builder /nala/migrate.linux-amd64 ./migrate
+COPY --from=builder /build/main .
+COPY --from=builder /build/migrate.linux-amd64 ./migrate
 COPY app.env .
 COPY start.sh .
 COPY db/migration ./migration
 
-# Export necessary port.
 EXPOSE 8080
 
-# Command to run when starting the container.
 CMD [ "/nala/main" ]
 ENTRYPOINT [ "/nala/start.sh" ]

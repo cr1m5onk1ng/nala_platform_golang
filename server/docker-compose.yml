@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+  webserver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports: "8080"
+    restart: unless-stopped
+    depends_on:
+      - db
+    links:
+      - db
+    user: ${APP_USER}
+
+  db:
+    image: postgres:12-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - database_volume:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  database_volume: ${HOME}/dev-postgres/data/

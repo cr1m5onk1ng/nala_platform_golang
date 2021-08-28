@@ -20,12 +20,13 @@ func PostRoutes(app *fiber.App, handlers *controllers.Handlers) {
 	route.Get("/posts/likes/:id", handlers.GetPostLikes)
 
 	// Routes for POST method
-	//route.Post("/posts", middleware.JWTProtected(), handlers.AddPost)
-	route.Post("/posts", middleware.PasetoProtected(handlers.TokenManager), handlers.AddPostNotSecure)
+	route.Post("/posts", middleware.PasetoProtected(handlers.TokenManager), handlers.AddPost)
+	route.Post("/posts/vote", middleware.PasetoProtected(handlers.TokenManager), handlers.VotePost)
 
 	// Routes for PATCH method
-	route.Patch("/posts/:post_id", middleware.PasetoProtected(handlers.TokenManager), handlers.UpdatePost)
+	route.Patch("/posts", middleware.PasetoProtected(handlers.TokenManager), handlers.UpdatePost)
 
 	// Routes for DELETE method
 	route.Delete("/posts/:post_id", middleware.PasetoProtected(handlers.TokenManager), handlers.RemovePost)
+	route.Delete("/posts/vote", middleware.PasetoProtected(handlers.TokenManager), handlers.RemoveVote)
 }

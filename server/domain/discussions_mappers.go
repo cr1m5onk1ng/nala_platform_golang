@@ -3,6 +3,7 @@ package domain
 import _ "github.com/go-playground/validator/v10"
 
 type MappedPostDiscussion struct {
+	ID          int64  `json:"id"`
 	CreatorID   string `json:"creator_id" validate:"required"`
 	PostID      string `json:"post_id" validate:"required"`
 	Title       string `json:"title" validate:"required,alphanum"`
@@ -10,6 +11,7 @@ type MappedPostDiscussion struct {
 }
 
 type MappedPostDiscussionComment struct {
+	ID              int64  `json:"id"`
 	DiscussionID    int64  `json:"discussion_id" validate:"required"`
 	ParentCommentID int64  `json:"parent_comment_id"`
 	UserID          string `json:"user_id" validate:"required"`

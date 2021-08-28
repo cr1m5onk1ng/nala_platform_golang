@@ -5,7 +5,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
 const addComment = `-- name: AddComment :one
@@ -20,10 +19,10 @@ INSERT INTO discussion_comments (
 `
 
 type AddCommentParams struct {
-	DiscussionID    int64         `json:"discussion_id"`
-	ParentCommentID sql.NullInt64 `json:"parent_comment_id"`
-	UserID          string        `json:"user_id"`
-	Content         string        `json:"content"`
+	DiscussionID    int64  `json:"discussion_id"`
+	ParentCommentID int64  `json:"parent_comment_id"`
+	UserID          string `json:"user_id"`
+	Content         string `json:"content"`
 }
 
 func (q *Queries) AddComment(ctx context.Context, arg AddCommentParams) (DiscussionComment, error) {
@@ -241,6 +240,19 @@ func (q *Queries) GetCommentLikes(ctx context.Context, commentID int64) ([]Comme
 	return items, nil
 }
 
+const getCommentLikesCount = `-- name: GetCommentLikesCount :one
+SELECT COUNT(*) 
+FROM comments_likes
+WHERE comment_id = $1
+`
+
+func (q *Queries) GetCommentLikesCount(ctx context.Context, commentID int64) (int64, error) {
+	row := q.queryRow(ctx, q.getCommentLikesCountStmt, getCommentLikesCount, commentID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getDiscussionCommentById = `-- name: GetDiscussionCommentById :one
 SELECT id, discussion_id, parent_comment_id, user_id, creation_time, content FROM discussion_comments
 WHERE id = $1
@@ -258,6 +270,25 @@ func (q *Queries) GetDiscussionCommentById(ctx context.Context, id int64) (Discu
 		&i.Content,
 	)
 	return i, err
+}
+
+const likeComment = `-- name: LikeComment :exec
+INSERT INTO comments_likes (
+  comment_id,
+  user_id
+) VALUES (
+  $1, $2
+)
+`
+
+type LikeCommentParams struct {
+	CommentID int64  `json:"comment_id"`
+	UserID    string `json:"user_id"`
+}
+
+func (q *Queries) LikeComment(ctx context.Context, arg LikeCommentParams) error {
+	_, err := q.exec(ctx, q.likeCommentStmt, likeComment, arg.CommentID, arg.UserID)
+	return err
 }
 
 const removeComment = `-- name: RemoveComment :exec
@@ -287,5 +318,21 @@ WHERE user_id = $1
 
 func (q *Queries) RemoveUserComments(ctx context.Context, userID string) error {
 	_, err := q.exec(ctx, q.removeUserCommentsStmt, removeUserComments, userID)
+	return err
+}
+
+const unlikeComment = `-- name: UnlikeComment :exec
+DELETE FROM comments_likes
+WHERE comment_id = $1
+AND user_id = $2
+`
+
+type UnlikeCommentParams struct {
+	CommentID int64  `json:"comment_id"`
+	UserID    string `json:"user_id"`
+}
+
+func (q *Queries) UnlikeComment(ctx context.Context, arg UnlikeCommentParams) error {
+	_, err := q.exec(ctx, q.unlikeCommentStmt, unlikeComment, arg.CommentID, arg.UserID)
 	return err
 }

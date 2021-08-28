@@ -13,12 +13,12 @@ type CommentsLike struct {
 }
 
 type DiscussionComment struct {
-	ID              int64         `json:"id"`
-	DiscussionID    int64         `json:"discussion_id"`
-	ParentCommentID sql.NullInt64 `json:"parent_comment_id"`
-	UserID          string        `json:"user_id"`
-	CreationTime    time.Time     `json:"creation_time"`
-	Content         string        `json:"content"`
+	ID              int64     `json:"id"`
+	DiscussionID    int64     `json:"discussion_id"`
+	ParentCommentID int64     `json:"parent_comment_id"`
+	UserID          string    `json:"user_id"`
+	CreationTime    time.Time `json:"creation_time"`
+	Content         string    `json:"content"`
 }
 
 type Learning struct {

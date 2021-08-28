@@ -22,6 +22,11 @@ LIMIT $2 OFFSET $3;
 SELECT * FROM comments_likes
 WHERE comment_id = $1;
 
+-- name: GetCommentLikesCount :one
+SELECT COUNT(*) 
+FROM comments_likes
+WHERE comment_id = $1;
+
 -- name: GetCommentDirectResponses :many
 SELECT * FROM discussion_comments AS c
 WHERE parent_comment_id = NULL
@@ -48,3 +53,16 @@ WHERE user_id = $1;
 -- name: RemoveDiscussionComments :exec
 DELETE FROM discussion_comments
 WHERE discussion_id = $1;
+
+-- name: LikeComment :exec
+INSERT INTO comments_likes (
+  comment_id,
+  user_id
+) VALUES (
+  $1, $2
+);
+
+-- name: UnlikeComment :exec
+DELETE FROM comments_likes
+WHERE comment_id = $1
+AND user_id = $2;

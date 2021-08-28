@@ -64,6 +64,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getCommentLikesStmt, err = db.PrepareContext(ctx, getCommentLikes); err != nil {
 		return nil, fmt.Errorf("error preparing query GetCommentLikes: %w", err)
 	}
+	if q.getCommentLikesCountStmt, err = db.PrepareContext(ctx, getCommentLikesCount); err != nil {
+		return nil, fmt.Errorf("error preparing query GetCommentLikesCount: %w", err)
+	}
 	if q.getDiscussionCommentByIdStmt, err = db.PrepareContext(ctx, getDiscussionCommentById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetDiscussionCommentById: %w", err)
 	}
@@ -148,6 +151,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getVotesStmt, err = db.PrepareContext(ctx, getVotes); err != nil {
 		return nil, fmt.Errorf("error preparing query GetVotes: %w", err)
 	}
+	if q.likeCommentStmt, err = db.PrepareContext(ctx, likeComment); err != nil {
+		return nil, fmt.Errorf("error preparing query LikeComment: %w", err)
+	}
 	if q.removeAllUserStudyListsStmt, err = db.PrepareContext(ctx, removeAllUserStudyLists); err != nil {
 		return nil, fmt.Errorf("error preparing query RemoveAllUserStudyLists: %w", err)
 	}
@@ -183,6 +189,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.removeVoteStmt, err = db.PrepareContext(ctx, removeVote); err != nil {
 		return nil, fmt.Errorf("error preparing query RemoveVote: %w", err)
+	}
+	if q.unlikeCommentStmt, err = db.PrepareContext(ctx, unlikeComment); err != nil {
+		return nil, fmt.Errorf("error preparing query UnlikeComment: %w", err)
 	}
 	if q.updatePostStmt, err = db.PrepareContext(ctx, updatePost); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdatePost: %w", err)
@@ -281,6 +290,11 @@ func (q *Queries) Close() error {
 	if q.getCommentLikesStmt != nil {
 		if cerr := q.getCommentLikesStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getCommentLikesStmt: %w", cerr)
+		}
+	}
+	if q.getCommentLikesCountStmt != nil {
+		if cerr := q.getCommentLikesCountStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getCommentLikesCountStmt: %w", cerr)
 		}
 	}
 	if q.getDiscussionCommentByIdStmt != nil {
@@ -423,6 +437,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getVotesStmt: %w", cerr)
 		}
 	}
+	if q.likeCommentStmt != nil {
+		if cerr := q.likeCommentStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing likeCommentStmt: %w", cerr)
+		}
+	}
 	if q.removeAllUserStudyListsStmt != nil {
 		if cerr := q.removeAllUserStudyListsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing removeAllUserStudyListsStmt: %w", cerr)
@@ -481,6 +500,11 @@ func (q *Queries) Close() error {
 	if q.removeVoteStmt != nil {
 		if cerr := q.removeVoteStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing removeVoteStmt: %w", cerr)
+		}
+	}
+	if q.unlikeCommentStmt != nil {
+		if cerr := q.unlikeCommentStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing unlikeCommentStmt: %w", cerr)
 		}
 	}
 	if q.updatePostStmt != nil {
@@ -576,6 +600,7 @@ type Queries struct {
 	getAllUsersStmt                    *sql.Stmt
 	getCommentDirectResponsesStmt      *sql.Stmt
 	getCommentLikesStmt                *sql.Stmt
+	getCommentLikesCountStmt           *sql.Stmt
 	getDiscussionCommentByIdStmt       *sql.Stmt
 	getPostByIdStmt                    *sql.Stmt
 	getPostDifficultyVotesStmt         *sql.Stmt
@@ -604,6 +629,7 @@ type Queries struct {
 	getUserTargetLanguagesStmt         *sql.Stmt
 	getVoteStmt                        *sql.Stmt
 	getVotesStmt                       *sql.Stmt
+	likeCommentStmt                    *sql.Stmt
 	removeAllUserStudyListsStmt        *sql.Stmt
 	removeCommentStmt                  *sql.Stmt
 	removeDiscussionCommentsStmt       *sql.Stmt
@@ -616,6 +642,7 @@ type Queries struct {
 	removeUserCommentsStmt             *sql.Stmt
 	removeUserPostsStmt                *sql.Stmt
 	removeVoteStmt                     *sql.Stmt
+	unlikeCommentStmt                  *sql.Stmt
 	updatePostStmt                     *sql.Stmt
 	updatePostDiscussionStmt           *sql.Stmt
 	updateResourceStmt                 *sql.Stmt
@@ -644,6 +671,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getAllUsersStmt:                    q.getAllUsersStmt,
 		getCommentDirectResponsesStmt:      q.getCommentDirectResponsesStmt,
 		getCommentLikesStmt:                q.getCommentLikesStmt,
+		getCommentLikesCountStmt:           q.getCommentLikesCountStmt,
 		getDiscussionCommentByIdStmt:       q.getDiscussionCommentByIdStmt,
 		getPostByIdStmt:                    q.getPostByIdStmt,
 		getPostDifficultyVotesStmt:         q.getPostDifficultyVotesStmt,
@@ -672,6 +700,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getUserTargetLanguagesStmt:         q.getUserTargetLanguagesStmt,
 		getVoteStmt:                        q.getVoteStmt,
 		getVotesStmt:                       q.getVotesStmt,
+		likeCommentStmt:                    q.likeCommentStmt,
 		removeAllUserStudyListsStmt:        q.removeAllUserStudyListsStmt,
 		removeCommentStmt:                  q.removeCommentStmt,
 		removeDiscussionCommentsStmt:       q.removeDiscussionCommentsStmt,
@@ -684,6 +713,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		removeUserCommentsStmt:             q.removeUserCommentsStmt,
 		removeUserPostsStmt:                q.removeUserPostsStmt,
 		removeVoteStmt:                     q.removeVoteStmt,
+		unlikeCommentStmt:                  q.unlikeCommentStmt,
 		updatePostStmt:                     q.updatePostStmt,
 		updatePostDiscussionStmt:           q.updatePostDiscussionStmt,
 		updateResourceStmt:                 q.updateResourceStmt,

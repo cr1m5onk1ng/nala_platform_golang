@@ -78,7 +78,7 @@ CREATE TABLE "post_discussions" (
 CREATE TABLE "discussion_comments" (
   "id" bigserial PRIMARY KEY,
   "discussion_id" bigint NOT NULL,
-  "parent_comment_id" bigint,
+  "parent_comment_id" bigint NOT NULL DEFAULT '-1',
   "user_id" varchar NOT NULL,
   "creation_time" timestamptz NOT NULL DEFAULT 'now()',
   "content" varchar NOT NULL

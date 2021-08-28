@@ -21,6 +21,7 @@ type Querier interface {
 	GetAllUsers(ctx context.Context) ([]User, error)
 	GetCommentDirectResponses(ctx context.Context, arg GetCommentDirectResponsesParams) ([]DiscussionComment, error)
 	GetCommentLikes(ctx context.Context, commentID int64) ([]CommentsLike, error)
+	GetCommentLikesCount(ctx context.Context, commentID int64) (int64, error)
 	GetDiscussionCommentById(ctx context.Context, id int64) (DiscussionComment, error)
 	GetPostById(ctx context.Context, id string) (UserPost, error)
 	GetPostDifficultyVotes(ctx context.Context, postID string) ([]Vote, error)
@@ -49,6 +50,7 @@ type Querier interface {
 	GetUserTargetLanguages(ctx context.Context, userID string) ([]Learning, error)
 	GetVote(ctx context.Context, arg GetVoteParams) (Vote, error)
 	GetVotes(ctx context.Context, postID string) ([]Vote, error)
+	LikeComment(ctx context.Context, arg LikeCommentParams) error
 	RemoveAllUserStudyLists(ctx context.Context, userID string) error
 	RemoveComment(ctx context.Context, id int64) error
 	RemoveDiscussionComments(ctx context.Context, discussionID int64) error
@@ -61,6 +63,7 @@ type Querier interface {
 	RemoveUserComments(ctx context.Context, userID string) error
 	RemoveUserPosts(ctx context.Context, userID string) error
 	RemoveVote(ctx context.Context, arg RemoveVoteParams) error
+	UnlikeComment(ctx context.Context, arg UnlikeCommentParams) error
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (UserPost, error)
 	UpdatePostDiscussion(ctx context.Context, arg UpdatePostDiscussionParams) (PostDiscussion, error)
 	UpdateResource(ctx context.Context, arg UpdateResourceParams) (Resource, error)

@@ -372,13 +372,18 @@ func (h *Handlers) GetPostLikes(ctx *fiber.Ctx) error {
 func (h *Handlers) RemovePost(ctx *fiber.Ctx) error {
 	postId := ctx.Params("post_id")
 
-	_, err := h.Repo.GetPostById(ctx.Context(), postId)
+	postData, err := h.Repo.GetPostById(ctx.Context(), postId)
 	if err != nil {
 		SendFailureResponse(
 			ctx,
 			fiber.StatusNotFound,
 			err.Error(),
 		)
+	}
+
+	_, err = h.checkUserPermission(ctx, postData.UserID)
+	if err != nil {
+		return handleUserAuthError(ctx, err)
 	}
 
 	err = h.Repo.RemovePost(ctx.Context(), postId)
@@ -435,12 +440,9 @@ func (h *Handlers) UpdateVote(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	_, err = h.checkUserPermission(ctx, vote.UserID)
 	if err != nil {
-		return SendFailureResponse(
-			ctx,
-			fiber.StatusNotFound,
-			err.Error(),
-		)
+		return handleUserAuthError(ctx, err)
 	}
 
 	args := db.UpdateVoteParams{
@@ -469,25 +471,19 @@ func (h *Handlers) UpdateVote(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) RemoveVote(ctx *fiber.Ctx) error {
-	postId := ctx.Params("post_id")
-	userId := ctx.Params("usr_id")
-
-	getVoteArgs := db.GetVoteParams{
-		UserID: userId,
-		PostID: postId,
-	}
-	_, err := h.Repo.GetVote(ctx.Context(), getVoteArgs)
+	vote, err := parseVoteData(ctx)
 	if err != nil {
-		SendFailureResponse(
-			ctx,
-			fiber.StatusNotFound,
-			err.Error(),
-		)
+		return err
+	}
+
+	_, err = h.checkUserPermission(ctx, vote.UserID)
+	if err != nil {
+		return handleUserAuthError(ctx, err)
 	}
 
 	removeVoteArgs := db.RemoveVoteParams{
-		UserID: userId,
-		PostID: postId,
+		UserID: vote.UserID,
+		PostID: vote.PostID,
 	}
 
 	err = h.Repo.RemoveVote(ctx.Context(), removeVoteArgs)

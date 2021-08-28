@@ -13,8 +13,28 @@ import (
 	"github.com/lib/pq"
 )
 
+// UTILITY FUNCTIONS
+
+func parsePostData(ctx *fiber.Ctx) (*domain.MappedUserPost, error) {
+	postData, err := validation.ValidatePostData(ctx, &domain.MappedUserPost{})
+	if err != nil {
+		return nil, err
+	}
+	return postData, nil
+}
+
+func parseVoteData(ctx *fiber.Ctx) (*db.VotePostParams, error) {
+	vote, err := validation.ValidateVoteData(ctx, &db.VotePostParams{})
+	if err != nil {
+		return nil, err
+	}
+	return vote, nil
+}
+
+// CONTROLLERS
+
 func (h *Handlers) GetPost(ctx *fiber.Ctx) error {
-	id, err := util.ParseRequestParam(ctx.Params("postId"))
+	id, err := util.ParseRequestParam(ctx.Params("post_id"))
 	if err != nil {
 		return SendFailureResponse(
 			ctx,
@@ -105,7 +125,7 @@ func (h *Handlers) GetPostsByDifficulty(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetPostsByUser(ctx *fiber.Ctx) error {
-	id, err := uuid.Parse(ctx.Params("usrId"))
+	id, err := uuid.Parse(ctx.Params("usr_id"))
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
@@ -189,13 +209,9 @@ func (h *Handlers) GetPostsByMediaType(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) AddPost(ctx *fiber.Ctx) error {
-	post, err := validation.ValidatePostDataAndAuthorization(ctx, &domain.MappedUserPost{})
+	post, err := parsePostData(ctx)
 	if err != nil {
-		return SendFailureResponse(
-			ctx,
-			fiber.StatusBadRequest,
-			err.Error(),
-		)
+		return err
 	}
 
 	args := db.AddPostParams{
@@ -229,11 +245,7 @@ func (h *Handlers) AddPost(ctx *fiber.Ctx) error {
 func (h *Handlers) AddPostNotSecure(ctx *fiber.Ctx) error {
 	post, err := validation.ValidatePostData(ctx, &domain.MappedUserPost{})
 	if err != nil {
-		return SendFailureResponse(
-			ctx,
-			fiber.StatusBadRequest,
-			err.Error(),
-		)
+		return err
 	}
 
 	args := db.AddPostParams{
@@ -265,13 +277,9 @@ func (h *Handlers) AddPostNotSecure(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) UpdatePost(ctx *fiber.Ctx) error {
-	post, err := validation.ValidatePostData(ctx, &domain.MappedUserPost{})
+	post, err := parsePostData(ctx)
 	if err != nil {
-		return SendFailureResponse(
-			ctx,
-			fiber.StatusNotFound,
-			err.Error(),
-		)
+		return err
 	}
 
 	args := db.UpdatePostParams{
@@ -301,16 +309,9 @@ func (h *Handlers) UpdatePost(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetPostTags(ctx *fiber.Ctx) error {
-	postId, err := uuid.Parse(ctx.Params("postId"))
-	if err != nil {
-		SendFailureResponse(
-			ctx,
-			fiber.StatusInternalServerError,
-			err.Error(),
-		)
-	}
+	postId := ctx.Params("post_id")
 
-	tags, err := h.Repo.GetPostTags(ctx.Context(), postId.String())
+	tags, err := h.Repo.GetPostTags(ctx.Context(), postId)
 
 	if err != nil {
 		return SendFailureResponse(
@@ -329,16 +330,9 @@ func (h *Handlers) GetPostTags(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetPostDifficultyVotes(ctx *fiber.Ctx) error {
-	postId, err := uuid.Parse(ctx.Params("postId"))
-	if err != nil {
-		SendFailureResponse(
-			ctx,
-			fiber.StatusInternalServerError,
-			err.Error(),
-		)
-	}
+	postId := ctx.Params("post_id")
 
-	votes, err := h.Repo.GetPostDifficultyVotes(ctx.Context(), postId.String())
+	votes, err := h.Repo.GetPostDifficultyVotes(ctx.Context(), postId)
 
 	if err != nil {
 		return SendFailureResponse(
@@ -356,16 +350,9 @@ func (h *Handlers) GetPostDifficultyVotes(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetPostLikes(ctx *fiber.Ctx) error {
-	postId, err := uuid.Parse(ctx.Params("postId"))
-	if err != nil {
-		SendFailureResponse(
-			ctx,
-			fiber.StatusInternalServerError,
-			err.Error(),
-		)
-	}
+	postId := ctx.Params("post_id")
 
-	likes, err := h.Repo.GetPostLikes(ctx.Context(), postId.String())
+	likes, err := h.Repo.GetPostLikes(ctx.Context(), postId)
 
 	if err != nil {
 		return SendFailureResponse(
@@ -383,16 +370,9 @@ func (h *Handlers) GetPostLikes(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) RemovePost(ctx *fiber.Ctx) error {
-	postId, err := uuid.Parse(ctx.Params("postId"))
-	if err != nil {
-		SendFailureResponse(
-			ctx,
-			fiber.StatusInternalServerError,
-			err.Error(),
-		)
-	}
+	postId := ctx.Params("post_id")
 
-	_, err = h.Repo.GetPostById(ctx.Context(), postId.String())
+	_, err := h.Repo.GetPostById(ctx.Context(), postId)
 	if err != nil {
 		SendFailureResponse(
 			ctx,
@@ -401,7 +381,7 @@ func (h *Handlers) RemovePost(ctx *fiber.Ctx) error {
 		)
 	}
 
-	err = h.Repo.RemovePost(ctx.Context(), postId.String())
+	err = h.Repo.RemovePost(ctx.Context(), postId)
 	if err != nil {
 		SendFailureResponse(
 			ctx,
@@ -418,14 +398,11 @@ func (h *Handlers) RemovePost(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) VotePost(ctx *fiber.Ctx) error {
-	vote, err := validation.ValidateVoteAndAuthorization(ctx, &db.Vote{})
+	vote, err := parseVoteData(ctx)
 	if err != nil {
-		return SendFailureResponse(
-			ctx,
-			fiber.StatusBadRequest,
-			err.Error(),
-		)
+		return err
 	}
+
 	args := db.VotePostParams{
 		UserID:     vote.UserID,
 		PostID:     vote.PostID,
@@ -453,7 +430,11 @@ func (h *Handlers) VotePost(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) UpdateVote(ctx *fiber.Ctx) error {
-	vote, err := validation.ValidateVoteAndAuthorization(ctx, &db.Vote{})
+	vote, err := parseVoteData(ctx)
+	if err != nil {
+		return err
+	}
+
 	if err != nil {
 		return SendFailureResponse(
 			ctx,
@@ -488,28 +469,14 @@ func (h *Handlers) UpdateVote(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) RemoveVote(ctx *fiber.Ctx) error {
-	postId, err := uuid.Parse(ctx.Params("postId"))
-	if err != nil {
-		SendFailureResponse(
-			ctx,
-			fiber.StatusInternalServerError,
-			err.Error(),
-		)
-	}
-	userId, err := uuid.Parse(ctx.Params("userId"))
-	if err != nil {
-		SendFailureResponse(
-			ctx,
-			fiber.StatusInternalServerError,
-			err.Error(),
-		)
-	}
+	postId := ctx.Params("post_id")
+	userId := ctx.Params("usr_id")
 
 	getVoteArgs := db.GetVoteParams{
-		UserID: userId.String(),
-		PostID: postId.String(),
+		UserID: userId,
+		PostID: postId,
 	}
-	_, err = h.Repo.GetVote(ctx.Context(), getVoteArgs)
+	_, err := h.Repo.GetVote(ctx.Context(), getVoteArgs)
 	if err != nil {
 		SendFailureResponse(
 			ctx,
@@ -519,8 +486,8 @@ func (h *Handlers) RemoveVote(ctx *fiber.Ctx) error {
 	}
 
 	removeVoteArgs := db.RemoveVoteParams{
-		UserID: userId.String(),
-		PostID: postId.String(),
+		UserID: userId,
+		PostID: postId,
 	}
 
 	err = h.Repo.RemoveVote(ctx.Context(), removeVoteArgs)

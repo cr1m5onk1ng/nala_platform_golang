@@ -8,7 +8,7 @@ type MappedUser struct {
 	Email    string `json:"email" validate:"required,email,min=6,max=32"`
 	Password string `json:"password" validate:"required,min=10,max=32"`
 	// 2 chars language code
-	NativeLanguage string `json:"native_language"`
+	NativeLanguage string `json:"native_language" validate:"required,min=2,max=2"`
 	Role           string `json:"role"`
 }
 

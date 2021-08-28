@@ -9,6 +9,25 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// UTILS
+func parseResourceData(ctx *fiber.Ctx) (*domain.MappedResource, error) {
+	resourceData, err := validation.ValidateBodyData(ctx, &domain.MappedResource{})
+	if err != nil {
+		return nil, err
+	}
+	post, ok := resourceData.(*domain.MappedResource)
+
+	if !ok {
+		return nil, SendFailureResponse(
+			ctx,
+			fiber.StatusInternalServerError,
+			"Could not cast input data to data model",
+		)
+	}
+	return post, nil
+}
+
+// CONTROLLERS
 func (h *Handlers) GetResource(ctx *fiber.Ctx) error {
 	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
 	if err != nil {
@@ -82,7 +101,7 @@ func (h *Handlers) GetResourcesByLanguage(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetResourcesPostsByUser(ctx *fiber.Ctx) error {
-	usrId := ctx.Params("usrId")
+	usrId := ctx.Params("usr_id")
 
 	resources, err := h.Repo.GetResourcesPostsByUser(ctx.Context(), usrId)
 	if err != nil {
@@ -100,7 +119,7 @@ func (h *Handlers) GetResourcesPostsByUser(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetResourcePost(ctx *fiber.Ctx) error {
-	postId, err := strconv.ParseInt(ctx.Params("postId"), 10, 64)
+	postId, err := strconv.ParseInt(ctx.Params("post_id"), 10, 64)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":   true,
@@ -126,21 +145,16 @@ func (h *Handlers) GetResourcePost(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) AddResource(ctx *fiber.Ctx) error {
-	resource, err := validation.ValidateResourceDataAndUrlAndAuthorization(ctx, &domain.MappedResource{})
+	resource, err := parseResourceData(ctx)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": "An error occured: " + err.Error(),
-			"data":    nil,
-		})
+		return err
 	}
 
 	args := db.AddResourceParams{
-		Url:        resource.Url,
-		Language:   resource.Language,
-		Difficulty: resource.Difficulty,
-		MediaType:  resource.MediaType,
-		Category:   resource.Category,
+		Url:       resource.Url,
+		Language:  resource.Language,
+		MediaType: resource.MediaType,
+		Category:  resource.Category,
 	}
 	addedResource, err := h.Repo.AddResource(ctx.Context(), args)
 
@@ -160,21 +174,16 @@ func (h *Handlers) AddResource(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) AddResourceNotSecure(ctx *fiber.Ctx) error {
-	resource, err := validation.ValidateResourceData(ctx, &domain.MappedResource{})
+	resource, err := parseResourceData(ctx)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": "An error occured: " + err.Error(),
-			"data":    nil,
-		})
+		return err
 	}
 
 	args := db.AddResourceParams{
-		Url:        resource.Url,
-		Language:   resource.Language,
-		Difficulty: resource.Difficulty,
-		MediaType:  resource.MediaType,
-		Category:   resource.Category,
+		Url:       resource.Url,
+		Language:  resource.Language,
+		MediaType: resource.MediaType,
+		Category:  resource.Category,
 	}
 	addedResource, err := h.Repo.AddResource(ctx.Context(), args)
 
@@ -204,11 +213,10 @@ func (h *Handlers) UpdateResource(ctx *fiber.Ctx) error {
 	}
 
 	args := db.UpdateResourceParams{
-		Url:        resource.Url,
-		Language:   resource.Language,
-		Difficulty: resource.Difficulty,
-		MediaType:  resource.MediaType,
-		Category:   resource.Category,
+		Url:       resource.Url,
+		Language:  resource.Language,
+		MediaType: resource.MediaType,
+		Category:  resource.Category,
 	}
 
 	editedResource, err := h.Repo.UpdateResourceTrans(ctx.Context(), args)

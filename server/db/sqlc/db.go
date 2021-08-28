@@ -46,8 +46,8 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
 	}
-	if q.getAllPostCommentsStmt, err = db.PrepareContext(ctx, getAllPostComments); err != nil {
-		return nil, fmt.Errorf("error preparing query GetAllPostComments: %w", err)
+	if q.getAllDiscussionCommentsStmt, err = db.PrepareContext(ctx, getAllDiscussionComments); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAllDiscussionComments: %w", err)
 	}
 	if q.getAllUserCommentsStmt, err = db.PrepareContext(ctx, getAllUserComments); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAllUserComments: %w", err)
@@ -64,11 +64,17 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getCommentLikesStmt, err = db.PrepareContext(ctx, getCommentLikes); err != nil {
 		return nil, fmt.Errorf("error preparing query GetCommentLikes: %w", err)
 	}
+	if q.getDiscussionCommentByIdStmt, err = db.PrepareContext(ctx, getDiscussionCommentById); err != nil {
+		return nil, fmt.Errorf("error preparing query GetDiscussionCommentById: %w", err)
+	}
 	if q.getPostByIdStmt, err = db.PrepareContext(ctx, getPostById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetPostById: %w", err)
 	}
 	if q.getPostDifficultyVotesStmt, err = db.PrepareContext(ctx, getPostDifficultyVotes); err != nil {
 		return nil, fmt.Errorf("error preparing query GetPostDifficultyVotes: %w", err)
+	}
+	if q.getPostDiscussionByIdStmt, err = db.PrepareContext(ctx, getPostDiscussionById); err != nil {
+		return nil, fmt.Errorf("error preparing query GetPostDiscussionById: %w", err)
 	}
 	if q.getPostDiscussionsStmt, err = db.PrepareContext(ctx, getPostDiscussions); err != nil {
 		return nil, fmt.Errorf("error preparing query GetPostDiscussions: %w", err)
@@ -247,9 +253,9 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
 		}
 	}
-	if q.getAllPostCommentsStmt != nil {
-		if cerr := q.getAllPostCommentsStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getAllPostCommentsStmt: %w", cerr)
+	if q.getAllDiscussionCommentsStmt != nil {
+		if cerr := q.getAllDiscussionCommentsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAllDiscussionCommentsStmt: %w", cerr)
 		}
 	}
 	if q.getAllUserCommentsStmt != nil {
@@ -277,6 +283,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getCommentLikesStmt: %w", cerr)
 		}
 	}
+	if q.getDiscussionCommentByIdStmt != nil {
+		if cerr := q.getDiscussionCommentByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getDiscussionCommentByIdStmt: %w", cerr)
+		}
+	}
 	if q.getPostByIdStmt != nil {
 		if cerr := q.getPostByIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getPostByIdStmt: %w", cerr)
@@ -285,6 +296,11 @@ func (q *Queries) Close() error {
 	if q.getPostDifficultyVotesStmt != nil {
 		if cerr := q.getPostDifficultyVotesStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getPostDifficultyVotesStmt: %w", cerr)
+		}
+	}
+	if q.getPostDiscussionByIdStmt != nil {
+		if cerr := q.getPostDiscussionByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getPostDiscussionByIdStmt: %w", cerr)
 		}
 	}
 	if q.getPostDiscussionsStmt != nil {
@@ -554,14 +570,16 @@ type Queries struct {
 	addStudyListStmt                   *sql.Stmt
 	addUserTargetLanguageStmt          *sql.Stmt
 	createUserStmt                     *sql.Stmt
-	getAllPostCommentsStmt             *sql.Stmt
+	getAllDiscussionCommentsStmt       *sql.Stmt
 	getAllUserCommentsStmt             *sql.Stmt
 	getAllUserPostCommentsStmt         *sql.Stmt
 	getAllUsersStmt                    *sql.Stmt
 	getCommentDirectResponsesStmt      *sql.Stmt
 	getCommentLikesStmt                *sql.Stmt
+	getDiscussionCommentByIdStmt       *sql.Stmt
 	getPostByIdStmt                    *sql.Stmt
 	getPostDifficultyVotesStmt         *sql.Stmt
+	getPostDiscussionByIdStmt          *sql.Stmt
 	getPostDiscussionsStmt             *sql.Stmt
 	getPostDiscussionsByUserStmt       *sql.Stmt
 	getPostLikesStmt                   *sql.Stmt
@@ -620,14 +638,16 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		addStudyListStmt:                   q.addStudyListStmt,
 		addUserTargetLanguageStmt:          q.addUserTargetLanguageStmt,
 		createUserStmt:                     q.createUserStmt,
-		getAllPostCommentsStmt:             q.getAllPostCommentsStmt,
+		getAllDiscussionCommentsStmt:       q.getAllDiscussionCommentsStmt,
 		getAllUserCommentsStmt:             q.getAllUserCommentsStmt,
 		getAllUserPostCommentsStmt:         q.getAllUserPostCommentsStmt,
 		getAllUsersStmt:                    q.getAllUsersStmt,
 		getCommentDirectResponsesStmt:      q.getCommentDirectResponsesStmt,
 		getCommentLikesStmt:                q.getCommentLikesStmt,
+		getDiscussionCommentByIdStmt:       q.getDiscussionCommentByIdStmt,
 		getPostByIdStmt:                    q.getPostByIdStmt,
 		getPostDifficultyVotesStmt:         q.getPostDifficultyVotesStmt,
+		getPostDiscussionByIdStmt:          q.getPostDiscussionByIdStmt,
 		getPostDiscussionsStmt:             q.getPostDiscussionsStmt,
 		getPostDiscussionsByUserStmt:       q.getPostDiscussionsByUserStmt,
 		getPostLikesStmt:                   q.getPostLikesStmt,

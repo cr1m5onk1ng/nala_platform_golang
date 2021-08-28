@@ -8,6 +8,10 @@ SELECT * FROM post_discussions
 WHERE creator_id = $1
 ORDER BY creation_time DESC;
 
+-- name: GetPostDiscussionById :one
+SELECT * FROM post_discussions
+WHERE id = $1;
+
 -- name: AddPostDiscussion :one
 INSERT INTO post_discussions (
   creator_id,

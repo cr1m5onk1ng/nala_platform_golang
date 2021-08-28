@@ -45,6 +45,25 @@ func (q *Queries) AddPostDiscussion(ctx context.Context, arg AddPostDiscussionPa
 	return i, err
 }
 
+const getPostDiscussionById = `-- name: GetPostDiscussionById :one
+SELECT id, creator_id, post_id, creation_time, title, description FROM post_discussions
+WHERE id = $1
+`
+
+func (q *Queries) GetPostDiscussionById(ctx context.Context, id int64) (PostDiscussion, error) {
+	row := q.queryRow(ctx, q.getPostDiscussionByIdStmt, getPostDiscussionById, id)
+	var i PostDiscussion
+	err := row.Scan(
+		&i.ID,
+		&i.CreatorID,
+		&i.PostID,
+		&i.CreationTime,
+		&i.Title,
+		&i.Description,
+	)
+	return i, err
+}
+
 const getPostDiscussions = `-- name: GetPostDiscussions :many
 SELECT id, creator_id, post_id, creation_time, title, description FROM post_discussions
 WHERE post_id = $1

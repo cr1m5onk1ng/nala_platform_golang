@@ -4,6 +4,7 @@ import (
 	"github.com/cr1m5onk1ng/nala_platform_app/constants"
 	"github.com/cr1m5onk1ng/nala_platform_app/util"
 	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
@@ -35,4 +36,15 @@ func ValidatorErrors(err error) map[string]string {
 
 func IsLanguageStringValid(lang string) bool {
 	return util.CheckStringInSlice(constants.LANGUAGES(), lang)
+}
+
+func ValidateBodyData(ctx *fiber.Ctx, model interface{}) (interface{}, error) {
+	if err := ctx.BodyParser(model); err != nil {
+		return nil, ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   true,
+			"message": err.Error(),
+			"data":    nil,
+		})
+	}
+	return model, nil
 }

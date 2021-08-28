@@ -45,19 +45,13 @@ func (q *Queries) AddComment(ctx context.Context, arg AddCommentParams) (Discuss
 	return i, err
 }
 
-const getAllPostComments = `-- name: GetAllPostComments :many
+const getAllDiscussionComments = `-- name: GetAllDiscussionComments :many
 SELECT id, discussion_id, parent_comment_id, user_id, creation_time, content FROM discussion_comments
-ORDER BY creation_time DESC
-LIMIT $1 OFFSET $2
+WHERE discussion_id = $1
 `
 
-type GetAllPostCommentsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
-}
-
-func (q *Queries) GetAllPostComments(ctx context.Context, arg GetAllPostCommentsParams) ([]DiscussionComment, error) {
-	rows, err := q.query(ctx, q.getAllPostCommentsStmt, getAllPostComments, arg.Limit, arg.Offset)
+func (q *Queries) GetAllDiscussionComments(ctx context.Context, discussionID int64) ([]DiscussionComment, error) {
+	rows, err := q.query(ctx, q.getAllDiscussionCommentsStmt, getAllDiscussionComments, discussionID)
 	if err != nil {
 		return nil, err
 	}
@@ -245,6 +239,25 @@ func (q *Queries) GetCommentLikes(ctx context.Context, commentID int64) ([]Comme
 		return nil, err
 	}
 	return items, nil
+}
+
+const getDiscussionCommentById = `-- name: GetDiscussionCommentById :one
+SELECT id, discussion_id, parent_comment_id, user_id, creation_time, content FROM discussion_comments
+WHERE id = $1
+`
+
+func (q *Queries) GetDiscussionCommentById(ctx context.Context, id int64) (DiscussionComment, error) {
+	row := q.queryRow(ctx, q.getDiscussionCommentByIdStmt, getDiscussionCommentById, id)
+	var i DiscussionComment
+	err := row.Scan(
+		&i.ID,
+		&i.DiscussionID,
+		&i.ParentCommentID,
+		&i.UserID,
+		&i.CreationTime,
+		&i.Content,
+	)
+	return i, err
 }
 
 const removeComment = `-- name: RemoveComment :exec

@@ -80,6 +80,7 @@ func main() {
 
 	// Routes definition.
 	//routes.SwaggerRoute(app)
+	routes.ResourceRoutes(app, handlers)
 	routes.UserRoutes(app, handlers)
 	routes.PostRoutes(app, handlers)
 	routes.NotFoundRoute(app)

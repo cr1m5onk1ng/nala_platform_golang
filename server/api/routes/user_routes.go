@@ -18,7 +18,7 @@ func UserRoutes(app *fiber.App, handlers *controllers.Handlers) {
 
 	route.Post("/users/login", handlers.LoginUser)
 
-	route.Post("/users/targetLang", middleware.PasetoProtected(handlers.TokenManager), handlers.AddUserTargetLanguage)
+	route.Post("/users/targetlang", middleware.PasetoProtected(handlers.TokenManager), handlers.AddUserTargetLanguage)
 
 	// Routes for PATCH method
 	route.Patch("/users/:id", middleware.PasetoProtected(handlers.TokenManager), handlers.GetUser)

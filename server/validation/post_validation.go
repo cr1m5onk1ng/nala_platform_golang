@@ -1,15 +1,15 @@
 package validation
 
 import (
+	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
 	"github.com/cr1m5onk1ng/nala_platform_app/domain"
+	"github.com/cr1m5onk1ng/nala_platform_app/util"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 func ValidatePostData(ctx *fiber.Ctx, post *domain.MappedUserPost) (*domain.MappedUserPost, error) {
-	// Check if data is valid
 	if err := ctx.BodyParser(post); err != nil {
-		// Return status 400 and error message.
 		return nil, ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":   true,
 			"message": err.Error(),
@@ -34,4 +34,27 @@ func ValidatePostDataAndAuthorization(ctx *fiber.Ctx, post *domain.MappedUserPos
 	}
 
 	return p, nil
+}
+
+func isDifficultyWithinValues(difficultyVote string) bool {
+	values := []string{"BEGINNER", "MEDIUM", "ADVANCED", "NATIVE"}
+	return util.CheckStringInSlice(values, difficultyVote)
+}
+
+func ValidateVoteData(ctx *fiber.Ctx, vote *db.VotePostParams) (*db.VotePostParams, error) {
+	if err := ctx.BodyParser(vote); err != nil {
+		return nil, ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   true,
+			"message": err.Error(),
+			"data":    nil,
+		})
+	}
+	if !isDifficultyWithinValues(vote.Difficulty) {
+		return nil, ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   true,
+			"message": "invalid difficulty string passed",
+			"data":    nil,
+		})
+	}
+	return vote, nil
 }

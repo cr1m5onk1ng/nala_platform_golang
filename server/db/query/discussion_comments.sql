@@ -1,7 +1,10 @@
--- name: GetAllPostComments :many
+-- name: GetDiscussionCommentById :one
 SELECT * FROM discussion_comments
-ORDER BY creation_time DESC
-LIMIT $1 OFFSET $2;
+WHERE id = $1;
+
+-- name: GetAllDiscussionComments :many
+SELECT * FROM discussion_comments
+WHERE discussion_id = $1;
 
 -- name: GetAllUserPostComments :many
 SELECT * FROM discussion_comments

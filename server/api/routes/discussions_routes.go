@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func ResourcesRoutes(app *fiber.App, handlers *controllers.Handlers) {
+func DiscussionsRoutes(app *fiber.App, handlers *controllers.Handlers) {
 	route := app.Group("/nala/v1")
 
 	// Routes for GET method

@@ -83,6 +83,7 @@ func main() {
 	routes.ResourceRoutes(app, handlers)
 	routes.UserRoutes(app, handlers)
 	routes.PostRoutes(app, handlers)
+	routes.DiscussionsRoutes(app, handlers)
 	routes.NotFoundRoute(app)
 
 	StartServer(app, envConfig.SERVER_URL)

@@ -101,7 +101,7 @@ func (h *Handlers) GetResourcesByLanguage(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetResourcesPostsByUser(ctx *fiber.Ctx) error {
-	usrId := ctx.Params("usr_id")
+	usrId := ctx.Params("usr-id")
 
 	resources, err := h.Repo.GetResourcesPostsByUser(ctx.Context(), usrId)
 	if err != nil {
@@ -119,7 +119,7 @@ func (h *Handlers) GetResourcesPostsByUser(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetResourcePost(ctx *fiber.Ctx) error {
-	postId, err := strconv.ParseInt(ctx.Params("post_id"), 10, 64)
+	postId, err := strconv.ParseInt(ctx.Params("post-id"), 10, 64)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":   true,

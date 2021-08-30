@@ -129,19 +129,26 @@ func (h *Handlers) CreateUser(ctx *fiber.Ctx) error {
 
 func (h *Handlers) UpdateUserLanguage(ctx *fiber.Ctx) error {
 
-	user, err := validation.CheckUserDataValidty(ctx, &domain.MappedUser{})
-	if err != nil {
-		return err
-	}
+	userId := ctx.Params("id")
 
-	_, err = h.checkUserPermission(ctx, user.ID)
+	_, err := h.checkUserPermission(ctx, userId)
 	if err != nil {
 		return handleUserAuthError(ctx, err)
 	}
 
+	langData, err := validation.ValidateBodyData(ctx, &db.UpdateUserLanguageParams{})
+	if err != nil {
+		return err
+	}
+
+	lang, ok := langData.(*db.UpdateUserLanguageParams)
+	if !ok {
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, "failed to parse request body")
+	}
+
 	args := db.UpdateUserLanguageParams{
-		ID:             user.ID,
-		NativeLanguage: user.NativeLanguage,
+		ID:             userId,
+		NativeLanguage: lang.NativeLanguage,
 	}
 
 	updatedUser, err := h.Repo.UpdateUserLanguageTrans(ctx.Context(), args)
@@ -163,19 +170,26 @@ func (h *Handlers) UpdateUserLanguage(ctx *fiber.Ctx) error {
 
 func (h *Handlers) UpdateUserRole(ctx *fiber.Ctx) error {
 
-	user, err := validation.CheckUserDataValidty(ctx, &domain.MappedUser{})
-	if err != nil {
-		return err
-	}
+	userId := ctx.Params("id")
 
-	_, err = h.checkUserPermission(ctx, user.ID)
+	_, err := h.checkUserPermission(ctx, userId)
 	if err != nil {
 		return handleUserAuthError(ctx, err)
 	}
 
+	roleData, err := validation.ValidateBodyData(ctx, &db.UpdateUserRoleParams{})
+	if err != nil {
+		return err
+	}
+
+	role, ok := roleData.(*db.UpdateUserRoleParams)
+	if !ok {
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, "failed to parse request body")
+	}
+
 	args := db.UpdateUserRoleParams{
-		ID:   user.ID,
-		Role: sql.NullString{String: user.Role, Valid: true},
+		ID:   userId,
+		Role: sql.NullString{String: role.Role.String, Valid: true},
 	}
 
 	updatedUser, err := h.Repo.UpdateUserRoleTrans(ctx.Context(), args)

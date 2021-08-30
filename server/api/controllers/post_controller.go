@@ -34,7 +34,7 @@ func parseVoteData(ctx *fiber.Ctx) (*db.VotePostParams, error) {
 // CONTROLLERS
 
 func (h *Handlers) GetPost(ctx *fiber.Ctx) error {
-	id, err := util.ParseRequestParam(ctx.Params("post_id"))
+	id, err := util.ParseRequestParam(ctx.Params("post-id"))
 	if err != nil {
 		return SendFailureResponse(
 			ctx,
@@ -125,7 +125,7 @@ func (h *Handlers) GetPostsByDifficulty(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetPostsByUser(ctx *fiber.Ctx) error {
-	id, err := uuid.Parse(ctx.Params("usr_id"))
+	id, err := uuid.Parse(ctx.Params("usr-id"))
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
@@ -282,6 +282,11 @@ func (h *Handlers) UpdatePost(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	_, err = h.checkUserPermission(ctx, post.UserID)
+	if err != nil {
+		handleUserAuthError(ctx, err)
+	}
+
 	args := db.UpdatePostParams{
 		UserID:          post.UserID,
 		ResourceID:      post.ResourceID,
@@ -309,7 +314,7 @@ func (h *Handlers) UpdatePost(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetPostTags(ctx *fiber.Ctx) error {
-	postId := ctx.Params("post_id")
+	postId := ctx.Params("post-id")
 
 	tags, err := h.Repo.GetPostTags(ctx.Context(), postId)
 
@@ -350,7 +355,7 @@ func (h *Handlers) GetPostDifficultyVotes(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetPostLikes(ctx *fiber.Ctx) error {
-	postId := ctx.Params("post_id")
+	postId := ctx.Params("post-id")
 
 	likes, err := h.Repo.GetPostLikes(ctx.Context(), postId)
 
@@ -370,7 +375,7 @@ func (h *Handlers) GetPostLikes(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) RemovePost(ctx *fiber.Ctx) error {
-	postId := ctx.Params("post_id")
+	postId := ctx.Params("post-id")
 
 	postData, err := h.Repo.GetPostById(ctx.Context(), postId)
 	if err != nil {

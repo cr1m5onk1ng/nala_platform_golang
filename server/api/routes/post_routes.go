@@ -10,23 +10,23 @@ func PostRoutes(app *fiber.App, handlers *controllers.Handlers) {
 	route := app.Group("/nala/v1")
 
 	// Routes for GET method
-	route.Get("/posts/:post_id", handlers.GetPost)
+	route.Get("/posts/:post-id", handlers.GetPost)
 	route.Get("/posts/:lang", handlers.GetPostsByLanguage)
-	route.Get("/posts/:usr_id", handlers.GetPostsByUser)
+	route.Get("/posts/:usr-id", handlers.GetPostsByUser)
 	route.Get("/posts/:cat", handlers.GetPostsByCategory)
 	route.Get("/posts/:diff", handlers.GetPostsByDifficulty)
 	route.Get("/posts/:media", handlers.GetPostsByMediaType)
-	route.Get("/posts/tags/:id", handlers.GetPostTags)
-	route.Get("/posts/likes/:id", handlers.GetPostLikes)
+	route.Get("/posts/post-id/tags", handlers.GetPostTags)
+	route.Get("/posts/post-id/likes", handlers.GetPostLikes)
 
 	// Routes for POST method
 	route.Post("/posts", middleware.PasetoProtected(handlers.TokenManager), handlers.AddPost)
-	route.Post("/posts/vote", middleware.PasetoProtected(handlers.TokenManager), handlers.VotePost)
+	route.Post("/posts/:post-id/vote", middleware.PasetoProtected(handlers.TokenManager), handlers.VotePost)
 
 	// Routes for PATCH method
-	route.Patch("/posts", middleware.PasetoProtected(handlers.TokenManager), handlers.UpdatePost)
+	route.Put("/posts/:post-id", middleware.PasetoProtected(handlers.TokenManager), handlers.UpdatePost)
 
 	// Routes for DELETE method
-	route.Delete("/posts/:post_id", middleware.PasetoProtected(handlers.TokenManager), handlers.RemovePost)
-	route.Delete("/posts/vote", middleware.PasetoProtected(handlers.TokenManager), handlers.RemoveVote)
+	route.Delete("/posts/:post-id", middleware.PasetoProtected(handlers.TokenManager), handlers.RemovePost)
+	route.Delete("/posts/:post-id/vote", middleware.PasetoProtected(handlers.TokenManager), handlers.RemoveVote)
 }

@@ -246,7 +246,7 @@ func (h *Handlers) RemoveCommentFromDiscussion(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetPostDiscussions(ctx *fiber.Ctx) error {
-	postId := ctx.Params("post_id")
+	postId := ctx.Params("post-id")
 
 	discussions, err := h.Repo.GetPostDiscussions(ctx.Context(), postId)
 	if err != nil {
@@ -257,7 +257,7 @@ func (h *Handlers) GetPostDiscussions(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetDiscussionComments(ctx *fiber.Ctx) error {
-	discussionId, err := strconv.ParseInt(ctx.Params("discussion_id"), 10, 64)
+	discussionId, err := strconv.ParseInt(ctx.Params("discussion-id"), 10, 64)
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
@@ -269,7 +269,7 @@ func (h *Handlers) GetDiscussionComments(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetCommentLikes(ctx *fiber.Ctx) error {
-	commentId, err := strconv.ParseInt(ctx.Params("comment_id"), 10, 64)
+	commentId, err := strconv.ParseInt(ctx.Params("comment-id"), 10, 64)
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
@@ -281,7 +281,7 @@ func (h *Handlers) GetCommentLikes(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetCommentLikesCount(ctx *fiber.Ctx) error {
-	commentId, err := strconv.ParseInt(ctx.Params("comment_id"), 10, 64)
+	commentId, err := strconv.ParseInt(ctx.Params("comment-id"), 10, 64)
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}

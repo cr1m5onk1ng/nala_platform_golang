@@ -11,9 +11,9 @@ func DiscussionsRoutes(app *fiber.App, handlers *controllers.Handlers) {
 
 	// Routes for GET method
 	route.Get("/posts/discussions/:post_id", handlers.GetPostDiscussions)
-	route.Get("/posts/discussions/comments/:discussion_id", handlers.GetDiscussionComments)
-	route.Get("/posts/discussions/comments/likes/:comment_id", handlers.GetCommentLikes)
-	route.Get("/posts/discussions/comments/likes/count/:comment_id", handlers.GetCommentLikesCount)
+	route.Get("/posts/discussions/comments/:discussion-id", handlers.GetDiscussionComments)
+	route.Get("/posts/discussions/comments/likes/:comment-id", handlers.GetCommentLikes)
+	route.Get("/posts/discussions/comments/likes/count/:comment-id", handlers.GetCommentLikesCount)
 
 	// Routes for POST method
 	route.Post("/posts/discussions", middleware.PasetoProtected(handlers.TokenManager), handlers.CreateDiscussion)

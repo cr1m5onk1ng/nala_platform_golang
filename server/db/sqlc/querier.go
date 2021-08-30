@@ -64,6 +64,7 @@ type Querier interface {
 	RemoveUserPosts(ctx context.Context, userID string) error
 	RemoveVote(ctx context.Context, arg RemoveVoteParams) error
 	UnlikeComment(ctx context.Context, arg UnlikeCommentParams) error
+	UpdateComment(ctx context.Context, arg UpdateCommentParams) (DiscussionComment, error)
 	UpdatePost(ctx context.Context, arg UpdatePostParams) (UserPost, error)
 	UpdatePostDiscussion(ctx context.Context, arg UpdatePostDiscussionParams) (PostDiscussion, error)
 	UpdateResource(ctx context.Context, arg UpdateResourceParams) (Resource, error)

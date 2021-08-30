@@ -23,8 +23,8 @@ func PostRoutes(app *fiber.App, handlers *controllers.Handlers) {
 	route.Post("/posts", middleware.PasetoProtected(handlers.TokenManager), handlers.AddPost)
 	route.Post("/posts/:post-id/vote", middleware.PasetoProtected(handlers.TokenManager), handlers.VotePost)
 
-	// Routes for PATCH method
-	route.Put("/posts/:post-id", middleware.PasetoProtected(handlers.TokenManager), handlers.UpdatePost)
+	// Routes for PUT method
+	route.Put("/posts", middleware.PasetoProtected(handlers.TokenManager), handlers.UpdatePost)
 
 	// Routes for DELETE method
 	route.Delete("/posts/:post-id", middleware.PasetoProtected(handlers.TokenManager), handlers.RemovePost)

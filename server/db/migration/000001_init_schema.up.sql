@@ -24,6 +24,20 @@ CREATE TABLE "learning" (
   PRIMARY KEY ("user_id", "language")
 );
 
+CREATE TABLE "community" (
+  "id" bigserial PRIMARY KEY NOT NULL,
+  "language" varchar(2) NOT NULL,
+  "title" varchar NOT NULL,
+  "thumbnail_url" varchar NOT NULL,
+  "metadata" jsonb
+);
+
+CREATE TABLE "community_users" (
+  "community_id" bigserial NOT NULL,
+  "user_id" varchar NOT NULL,
+  PRIMARY KEY ("community_id", "user_id")
+);
+
 CREATE TABLE "user_post" (
   "id" varchar PRIMARY KEY,
   "user_id" varchar NOT NULL,
@@ -34,9 +48,26 @@ CREATE TABLE "user_post" (
 );
 
 CREATE TABLE "tags" (
+  "id" bigserial PRIMARY KEY NOT NULL,
+  "tag" varchar NOT NULL
+);
+
+CREATE TABLE "post_tags" (
+  "tag_id" bigint NOT NULL,
   "post_id" varchar NOT NULL,
-  "tag" varchar NOT NULL,
-  PRIMARY KEY ("post_id", "tag")
+  PRIMARY KEY ("tag_id", "post_id")
+);
+
+CREATE TABLE "topics" (
+  "id" bigserial PRIMARY KEY NOT NULL,
+  "topic" varchar NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT 'now()'
+);
+
+CREATE TABLE "post_topics" (
+  "post_id" varchar NOT NULL,
+  "topic_id" bigint NOT NULL,
+  PRIMARY KEY ("post_id", "topic_id")
 );
 
 CREATE TABLE "votes" (
@@ -80,7 +111,8 @@ CREATE TABLE "discussion_comments" (
   "discussion_id" bigint NOT NULL,
   "parent_comment_id" bigint NOT NULL DEFAULT '-1',
   "user_id" varchar NOT NULL,
-  "creation_time" timestamptz NOT NULL DEFAULT 'now()',
+  "created_at" timestamptz NOT NULL DEFAULT 'now()',
+  "updated_at" timestamptz NOT NULL DEFAULT '0001-01-01 00:00:00+00',
   "content" varchar NOT NULL
 );
 
@@ -108,11 +140,21 @@ CREATE TABLE "study_list_resource" (
 
 ALTER TABLE "learning" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+ALTER TABLE "community_users" ADD FOREIGN KEY ("community_id") REFERENCES "community" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "community_users" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
 ALTER TABLE "user_post" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "user_post" ADD FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "tags" ADD FOREIGN KEY ("post_id") REFERENCES "user_post" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "post_tags" ADD FOREIGN KEY ("tag_id") REFERENCES "tags" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "post_tags" ADD FOREIGN KEY ("post_id") REFERENCES "user_post" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "post_topics" ADD FOREIGN KEY ("post_id") REFERENCES "user_post" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "post_topics" ADD FOREIGN KEY ("topic_id") REFERENCES "topics" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "votes" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -150,9 +192,13 @@ ALTER TABLE "study_list_resource" ADD FOREIGN KEY ("study_list_id") REFERENCES "
 
 ALTER TABLE "study_list_resource" ADD FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+CREATE INDEX ON "community" ("language");
+
 CREATE INDEX ON "user_post" ("user_id");
 
 CREATE INDEX ON "user_post" ("post_title");
+
+CREATE INDEX ON "tags" ("tag");
 
 CREATE INDEX ON "post_discussions" ("post_id");
 

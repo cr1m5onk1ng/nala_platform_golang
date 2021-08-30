@@ -124,8 +124,10 @@ func (q *Queries) GetPostLikes(ctx context.Context, postID string) ([]Like, erro
 }
 
 const getPostTags = `-- name: GetPostTags :many
-SELECT post_id, tag FROM tags
-WHERE post_id = $1
+SELECT t.id, t.tag FROM tags as t
+JOIN post_tags as pt
+ON t.id = pt.tag_id
+WHERE pt.post_id = $1
 `
 
 func (q *Queries) GetPostTags(ctx context.Context, postID string) ([]Tag, error) {
@@ -137,7 +139,7 @@ func (q *Queries) GetPostTags(ctx context.Context, postID string) ([]Tag, error)
 	items := []Tag{}
 	for rows.Next() {
 		var i Tag
-		if err := rows.Scan(&i.PostID, &i.Tag); err != nil {
+		if err := rows.Scan(&i.ID, &i.Tag); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

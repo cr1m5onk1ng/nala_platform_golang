@@ -193,6 +193,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.unlikeCommentStmt, err = db.PrepareContext(ctx, unlikeComment); err != nil {
 		return nil, fmt.Errorf("error preparing query UnlikeComment: %w", err)
 	}
+	if q.updateCommentStmt, err = db.PrepareContext(ctx, updateComment); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateComment: %w", err)
+	}
 	if q.updatePostStmt, err = db.PrepareContext(ctx, updatePost); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdatePost: %w", err)
 	}
@@ -507,6 +510,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing unlikeCommentStmt: %w", cerr)
 		}
 	}
+	if q.updateCommentStmt != nil {
+		if cerr := q.updateCommentStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateCommentStmt: %w", cerr)
+		}
+	}
 	if q.updatePostStmt != nil {
 		if cerr := q.updatePostStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updatePostStmt: %w", cerr)
@@ -643,6 +651,7 @@ type Queries struct {
 	removeUserPostsStmt                *sql.Stmt
 	removeVoteStmt                     *sql.Stmt
 	unlikeCommentStmt                  *sql.Stmt
+	updateCommentStmt                  *sql.Stmt
 	updatePostStmt                     *sql.Stmt
 	updatePostDiscussionStmt           *sql.Stmt
 	updateResourceStmt                 *sql.Stmt
@@ -714,6 +723,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		removeUserPostsStmt:                q.removeUserPostsStmt,
 		removeVoteStmt:                     q.removeVoteStmt,
 		unlikeCommentStmt:                  q.unlikeCommentStmt,
+		updateCommentStmt:                  q.updateCommentStmt,
 		updatePostStmt:                     q.updatePostStmt,
 		updatePostDiscussionStmt:           q.updatePostDiscussionStmt,
 		updateResourceStmt:                 q.updateResourceStmt,

@@ -15,7 +15,7 @@ INSERT INTO discussion_comments (
   content
 ) VALUES (
     $1, $2, $3, $4
-) RETURNING id, discussion_id, parent_comment_id, user_id, creation_time, content
+) RETURNING id, discussion_id, parent_comment_id, user_id, created_at, updated_at, content
 `
 
 type AddCommentParams struct {
@@ -38,14 +38,15 @@ func (q *Queries) AddComment(ctx context.Context, arg AddCommentParams) (Discuss
 		&i.DiscussionID,
 		&i.ParentCommentID,
 		&i.UserID,
-		&i.CreationTime,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.Content,
 	)
 	return i, err
 }
 
 const getAllDiscussionComments = `-- name: GetAllDiscussionComments :many
-SELECT id, discussion_id, parent_comment_id, user_id, creation_time, content FROM discussion_comments
+SELECT id, discussion_id, parent_comment_id, user_id, created_at, updated_at, content FROM discussion_comments
 WHERE discussion_id = $1
 `
 
@@ -63,7 +64,8 @@ func (q *Queries) GetAllDiscussionComments(ctx context.Context, discussionID int
 			&i.DiscussionID,
 			&i.ParentCommentID,
 			&i.UserID,
-			&i.CreationTime,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 			&i.Content,
 		); err != nil {
 			return nil, err
@@ -80,7 +82,7 @@ func (q *Queries) GetAllDiscussionComments(ctx context.Context, discussionID int
 }
 
 const getAllUserComments = `-- name: GetAllUserComments :many
-SELECT id, discussion_id, parent_comment_id, user_id, creation_time, content FROM discussion_comments
+SELECT id, discussion_id, parent_comment_id, user_id, created_at, updated_at, content FROM discussion_comments
 WHERE user_id = $1
 ORDER BY creation_time DESC
 LIMIT $2 OFFSET $3
@@ -106,7 +108,8 @@ func (q *Queries) GetAllUserComments(ctx context.Context, arg GetAllUserComments
 			&i.DiscussionID,
 			&i.ParentCommentID,
 			&i.UserID,
-			&i.CreationTime,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 			&i.Content,
 		); err != nil {
 			return nil, err
@@ -123,7 +126,7 @@ func (q *Queries) GetAllUserComments(ctx context.Context, arg GetAllUserComments
 }
 
 const getAllUserPostComments = `-- name: GetAllUserPostComments :many
-SELECT id, discussion_id, parent_comment_id, user_id, creation_time, content FROM discussion_comments
+SELECT id, discussion_id, parent_comment_id, user_id, created_at, updated_at, content FROM discussion_comments
 WHERE discussion_id = $1 AND user_id = $2
 ORDER BY creation_time DESC
 LIMIT $3 OFFSET $4
@@ -155,7 +158,8 @@ func (q *Queries) GetAllUserPostComments(ctx context.Context, arg GetAllUserPost
 			&i.DiscussionID,
 			&i.ParentCommentID,
 			&i.UserID,
-			&i.CreationTime,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 			&i.Content,
 		); err != nil {
 			return nil, err
@@ -172,7 +176,7 @@ func (q *Queries) GetAllUserPostComments(ctx context.Context, arg GetAllUserPost
 }
 
 const getCommentDirectResponses = `-- name: GetCommentDirectResponses :many
-SELECT id, discussion_id, parent_comment_id, user_id, creation_time, content FROM discussion_comments AS c
+SELECT id, discussion_id, parent_comment_id, user_id, created_at, updated_at, content FROM discussion_comments AS c
 WHERE parent_comment_id = NULL
 LIMIT $1 OFFSET $2
 `
@@ -196,7 +200,8 @@ func (q *Queries) GetCommentDirectResponses(ctx context.Context, arg GetCommentD
 			&i.DiscussionID,
 			&i.ParentCommentID,
 			&i.UserID,
-			&i.CreationTime,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 			&i.Content,
 		); err != nil {
 			return nil, err
@@ -254,7 +259,7 @@ func (q *Queries) GetCommentLikesCount(ctx context.Context, commentID int64) (in
 }
 
 const getDiscussionCommentById = `-- name: GetDiscussionCommentById :one
-SELECT id, discussion_id, parent_comment_id, user_id, creation_time, content FROM discussion_comments
+SELECT id, discussion_id, parent_comment_id, user_id, created_at, updated_at, content FROM discussion_comments
 WHERE id = $1
 `
 
@@ -266,7 +271,8 @@ func (q *Queries) GetDiscussionCommentById(ctx context.Context, id int64) (Discu
 		&i.DiscussionID,
 		&i.ParentCommentID,
 		&i.UserID,
-		&i.CreationTime,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.Content,
 	)
 	return i, err
@@ -335,4 +341,31 @@ type UnlikeCommentParams struct {
 func (q *Queries) UnlikeComment(ctx context.Context, arg UnlikeCommentParams) error {
 	_, err := q.exec(ctx, q.unlikeCommentStmt, unlikeComment, arg.CommentID, arg.UserID)
 	return err
+}
+
+const updateComment = `-- name: UpdateComment :one
+UPDATE discussion_comments
+SET content = $2, updated_at = now()
+WHERE id = $1
+RETURNING id, discussion_id, parent_comment_id, user_id, created_at, updated_at, content
+`
+
+type UpdateCommentParams struct {
+	ID      int64  `json:"id"`
+	Content string `json:"content"`
+}
+
+func (q *Queries) UpdateComment(ctx context.Context, arg UpdateCommentParams) (DiscussionComment, error) {
+	row := q.queryRow(ctx, q.updateCommentStmt, updateComment, arg.ID, arg.Content)
+	var i DiscussionComment
+	err := row.Scan(
+		&i.ID,
+		&i.DiscussionID,
+		&i.ParentCommentID,
+		&i.UserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Content,
+	)
+	return i, err
 }

@@ -46,6 +46,12 @@ INSERT INTO discussion_comments (
 DELETE FROM discussion_comments
 WHERE id = $1;
 
+-- name: UpdateComment :one
+UPDATE discussion_comments
+SET content = $2, updated_at = now()
+WHERE id = $1
+RETURNING *;
+
 -- name: RemoveUserComments :exec
 DELETE FROM discussion_comments
 WHERE user_id = $1;

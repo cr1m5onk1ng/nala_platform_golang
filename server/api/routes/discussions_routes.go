@@ -20,8 +20,9 @@ func DiscussionsRoutes(app *fiber.App, handlers *controllers.Handlers) {
 	route.Post("/posts/discussions/comments", middleware.PasetoProtected(handlers.TokenManager), handlers.AddCommentOnDiscussion)
 	route.Post("/posts/discussions/comments/like", middleware.PasetoProtected(handlers.TokenManager), handlers.LikeComment)
 
-	// Routes for PATCH method
-	route.Patch("/posts/discussions", middleware.PasetoProtected(handlers.TokenManager), handlers.UpdateDiscussion)
+	// Routes for PUT method
+	route.Put("/posts/discussions", middleware.PasetoProtected(handlers.TokenManager), handlers.UpdateDiscussion)
+	route.Put("/posts/discussions/discussion-id/comments", middleware.PasetoProtected(handlers.TokenManager), handlers.UpdateDiscussionComment)
 
 	// Routes for DELETE method
 	route.Delete("/posts/discussions", middleware.PasetoProtected(handlers.TokenManager), handlers.RemoveDiscussion)

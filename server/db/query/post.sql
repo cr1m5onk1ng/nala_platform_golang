@@ -58,8 +58,10 @@ WHERE user_id = $1 AND resource_id = $2
 RETURNING *;
 
 -- name: GetPostTags :many
-SELECT * FROM tags
-WHERE post_id = $1;
+SELECT t.* FROM tags as t
+JOIN post_tags as pt
+ON t.id = pt.tag_id
+WHERE pt.post_id = $1;
 
 -- name: GetPostDifficultyVotes :many
 SELECT * from votes

@@ -245,6 +245,38 @@ func (h *Handlers) RemoveCommentFromDiscussion(ctx *fiber.Ctx) error {
 	)
 }
 
+func (h *Handlers) UpdateDiscussionComment(ctx *fiber.Ctx) error {
+	commentData, err := parseCommentData(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.checkUserPermission(ctx, commentData.UserID)
+	if err != nil {
+		return handleUserAuthError(ctx, err)
+	}
+
+	args := db.UpdateCommentParams{
+		ID:      commentData.ID,
+		Content: commentData.Content,
+	}
+
+	_, err = h.Repo.UpdateComment(ctx.Context(), args)
+	if err != nil {
+		SendFailureResponse(
+			ctx,
+			fiber.StatusNotFound,
+			err.Error(),
+		)
+	}
+
+	return SendSuccessResponse(
+		ctx,
+		fiber.StatusNoContent,
+		nil,
+	)
+}
+
 func (h *Handlers) GetPostDiscussions(ctx *fiber.Ctx) error {
 	postId := ctx.Params("post-id")
 

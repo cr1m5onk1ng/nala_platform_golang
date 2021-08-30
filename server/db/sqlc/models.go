@@ -4,6 +4,7 @@ package db
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 )
 
@@ -12,12 +13,26 @@ type CommentsLike struct {
 	UserID    string `json:"user_id"`
 }
 
+type Community struct {
+	ID           int64           `json:"id"`
+	Language     string          `json:"language"`
+	Title        string          `json:"title"`
+	ThumbnailUrl string          `json:"thumbnail_url"`
+	Metadata     json.RawMessage `json:"metadata"`
+}
+
+type CommunityUser struct {
+	CommunityID int64  `json:"community_id"`
+	UserID      string `json:"user_id"`
+}
+
 type DiscussionComment struct {
 	ID              int64     `json:"id"`
 	DiscussionID    int64     `json:"discussion_id"`
 	ParentCommentID int64     `json:"parent_comment_id"`
 	UserID          string    `json:"user_id"`
-	CreationTime    time.Time `json:"creation_time"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
 	Content         string    `json:"content"`
 }
 
@@ -38,6 +53,16 @@ type PostDiscussion struct {
 	CreationTime time.Time      `json:"creation_time"`
 	Title        string         `json:"title"`
 	Description  sql.NullString `json:"description"`
+}
+
+type PostTag struct {
+	TagID  int64  `json:"tag_id"`
+	PostID string `json:"post_id"`
+}
+
+type PostTopic struct {
+	PostID  string `json:"post_id"`
+	TopicID int64  `json:"topic_id"`
 }
 
 type Resource struct {
@@ -66,8 +91,14 @@ type StudyListResource struct {
 }
 
 type Tag struct {
-	PostID string `json:"post_id"`
-	Tag    string `json:"tag"`
+	ID  int64  `json:"id"`
+	Tag string `json:"tag"`
+}
+
+type Topic struct {
+	ID        int64     `json:"id"`
+	Topic     string    `json:"topic"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type User struct {

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"database/sql"
-	"fmt"
 
 	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
 	"github.com/cr1m5onk1ng/nala_platform_app/domain"
@@ -59,7 +58,6 @@ func (h *Handlers) LoginUser(ctx *fiber.Ctx) error {
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusUnauthorized, err.Error())
 	}
-	fmt.Printf("Token Duration: %s", h.Config.PASETO_TOKEN_DURATION)
 	token, err := h.TokenManager.CreateToken(user.Username, user.Email, h.Config.PASETO_TOKEN_DURATION)
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
@@ -71,11 +69,7 @@ func (h *Handlers) LoginUser(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetUser(ctx *fiber.Ctx) error {
-	idParam := ctx.Params("id")
-	id, err := util.ParseRequestParam(idParam)
-	if err != nil {
-		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
-	}
+	id := ctx.Params("id")
 	user, err := h.checkUserPermission(ctx, id)
 	if err != nil {
 		return handleUserAuthError(ctx, err)
@@ -95,7 +89,7 @@ func (h *Handlers) CreateUser(ctx *fiber.Ctx) error {
 
 	user, err := validation.CheckUserDataValidty(ctx, &domain.MappedUser{})
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	args := db.CreateUserParams{
@@ -216,11 +210,6 @@ func (h *Handlers) AddUserTargetLanguage(ctx *fiber.Ctx) error {
 		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
-	/*
-		_, err = h.checkUserPermission(ctx, targetLang.UserID)
-		if err != nil {
-			return err
-		} */
 	_, err = h.checkUserPermission(ctx, targetLang.UserID)
 	if err != nil {
 		return handleUserAuthError(ctx, err)

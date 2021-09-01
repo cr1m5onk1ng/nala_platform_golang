@@ -67,6 +67,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getCommentLikesCountStmt, err = db.PrepareContext(ctx, getCommentLikesCount); err != nil {
 		return nil, fmt.Errorf("error preparing query GetCommentLikesCount: %w", err)
 	}
+	if q.getCommunitiesPostsStmt, err = db.PrepareContext(ctx, getCommunitiesPosts); err != nil {
+		return nil, fmt.Errorf("error preparing query GetCommunitiesPosts: %w", err)
+	}
 	if q.getDiscussionCommentByIdStmt, err = db.PrepareContext(ctx, getDiscussionCommentById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetDiscussionCommentById: %w", err)
 	}
@@ -91,6 +94,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getPostTagsStmt, err = db.PrepareContext(ctx, getPostTags); err != nil {
 		return nil, fmt.Errorf("error preparing query GetPostTags: %w", err)
 	}
+	if q.getPostsStmt, err = db.PrepareContext(ctx, getPosts); err != nil {
+		return nil, fmt.Errorf("error preparing query GetPosts: %w", err)
+	}
 	if q.getPostsByCategoryStmt, err = db.PrepareContext(ctx, getPostsByCategory); err != nil {
 		return nil, fmt.Errorf("error preparing query GetPostsByCategory: %w", err)
 	}
@@ -102,6 +108,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getPostsByMediaTypeStmt, err = db.PrepareContext(ctx, getPostsByMediaType); err != nil {
 		return nil, fmt.Errorf("error preparing query GetPostsByMediaType: %w", err)
+	}
+	if q.getPostsByTopicStmt, err = db.PrepareContext(ctx, getPostsByTopic); err != nil {
+		return nil, fmt.Errorf("error preparing query GetPostsByTopic: %w", err)
 	}
 	if q.getPostsByUserStmt, err = db.PrepareContext(ctx, getPostsByUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetPostsByUser: %w", err)
@@ -300,6 +309,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getCommentLikesCountStmt: %w", cerr)
 		}
 	}
+	if q.getCommunitiesPostsStmt != nil {
+		if cerr := q.getCommunitiesPostsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getCommunitiesPostsStmt: %w", cerr)
+		}
+	}
 	if q.getDiscussionCommentByIdStmt != nil {
 		if cerr := q.getDiscussionCommentByIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getDiscussionCommentByIdStmt: %w", cerr)
@@ -340,6 +354,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getPostTagsStmt: %w", cerr)
 		}
 	}
+	if q.getPostsStmt != nil {
+		if cerr := q.getPostsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getPostsStmt: %w", cerr)
+		}
+	}
 	if q.getPostsByCategoryStmt != nil {
 		if cerr := q.getPostsByCategoryStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getPostsByCategoryStmt: %w", cerr)
@@ -358,6 +377,11 @@ func (q *Queries) Close() error {
 	if q.getPostsByMediaTypeStmt != nil {
 		if cerr := q.getPostsByMediaTypeStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getPostsByMediaTypeStmt: %w", cerr)
+		}
+	}
+	if q.getPostsByTopicStmt != nil {
+		if cerr := q.getPostsByTopicStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getPostsByTopicStmt: %w", cerr)
 		}
 	}
 	if q.getPostsByUserStmt != nil {
@@ -609,6 +633,7 @@ type Queries struct {
 	getCommentDirectResponsesStmt      *sql.Stmt
 	getCommentLikesStmt                *sql.Stmt
 	getCommentLikesCountStmt           *sql.Stmt
+	getCommunitiesPostsStmt            *sql.Stmt
 	getDiscussionCommentByIdStmt       *sql.Stmt
 	getPostByIdStmt                    *sql.Stmt
 	getPostDifficultyVotesStmt         *sql.Stmt
@@ -617,10 +642,12 @@ type Queries struct {
 	getPostDiscussionsByUserStmt       *sql.Stmt
 	getPostLikesStmt                   *sql.Stmt
 	getPostTagsStmt                    *sql.Stmt
+	getPostsStmt                       *sql.Stmt
 	getPostsByCategoryStmt             *sql.Stmt
 	getPostsByDifficultyStmt           *sql.Stmt
 	getPostsByLanguageStmt             *sql.Stmt
 	getPostsByMediaTypeStmt            *sql.Stmt
+	getPostsByTopicStmt                *sql.Stmt
 	getPostsByUserStmt                 *sql.Stmt
 	getResourceByIdStmt                *sql.Stmt
 	getResourceByUrlStmt               *sql.Stmt
@@ -681,6 +708,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getCommentDirectResponsesStmt:      q.getCommentDirectResponsesStmt,
 		getCommentLikesStmt:                q.getCommentLikesStmt,
 		getCommentLikesCountStmt:           q.getCommentLikesCountStmt,
+		getCommunitiesPostsStmt:            q.getCommunitiesPostsStmt,
 		getDiscussionCommentByIdStmt:       q.getDiscussionCommentByIdStmt,
 		getPostByIdStmt:                    q.getPostByIdStmt,
 		getPostDifficultyVotesStmt:         q.getPostDifficultyVotesStmt,
@@ -689,10 +717,12 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getPostDiscussionsByUserStmt:       q.getPostDiscussionsByUserStmt,
 		getPostLikesStmt:                   q.getPostLikesStmt,
 		getPostTagsStmt:                    q.getPostTagsStmt,
+		getPostsStmt:                       q.getPostsStmt,
 		getPostsByCategoryStmt:             q.getPostsByCategoryStmt,
 		getPostsByDifficultyStmt:           q.getPostsByDifficultyStmt,
 		getPostsByLanguageStmt:             q.getPostsByLanguageStmt,
 		getPostsByMediaTypeStmt:            q.getPostsByMediaTypeStmt,
+		getPostsByTopicStmt:                q.getPostsByTopicStmt,
 		getPostsByUserStmt:                 q.getPostsByUserStmt,
 		getResourceByIdStmt:                q.getResourceByIdStmt,
 		getResourceByUrlStmt:               q.getResourceByUrlStmt,

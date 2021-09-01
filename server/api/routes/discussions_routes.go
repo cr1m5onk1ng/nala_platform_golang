@@ -10,10 +10,10 @@ func DiscussionsRoutes(app *fiber.App, handlers *controllers.Handlers) {
 	route := app.Group("/nala/v1")
 
 	// Routes for GET method
-	route.Get("/posts/discussions/:post_id", handlers.GetPostDiscussions)
-	route.Get("/posts/discussions/comments/:discussion-id", handlers.GetDiscussionComments)
-	route.Get("/posts/discussions/comments/likes/:comment-id", handlers.GetCommentLikes)
-	route.Get("/posts/discussions/comments/likes/count/:comment-id", handlers.GetCommentLikesCount)
+	route.Get("/posts/discussions/:post", handlers.GetPostDiscussions)
+	route.Get("/posts/discussions/comments/:discussion", handlers.GetDiscussionComments)
+	route.Get("/posts/discussions/comments/likes/:comment", handlers.GetCommentLikes)
+	route.Get("/posts/discussions/comments/likes/count/:comment", handlers.GetCommentLikesCount)
 
 	// Routes for POST method
 	route.Post("/posts/discussions", middleware.PasetoProtected(handlers.TokenManager), handlers.CreateDiscussion)
@@ -22,7 +22,7 @@ func DiscussionsRoutes(app *fiber.App, handlers *controllers.Handlers) {
 
 	// Routes for PUT method
 	route.Put("/posts/discussions", middleware.PasetoProtected(handlers.TokenManager), handlers.UpdateDiscussion)
-	route.Put("/posts/discussions/discussion-id/comments", middleware.PasetoProtected(handlers.TokenManager), handlers.UpdateDiscussionComment)
+	route.Put("/posts/discussions/comments", middleware.PasetoProtected(handlers.TokenManager), handlers.UpdateDiscussionComment)
 
 	// Routes for DELETE method
 	route.Delete("/posts/discussions", middleware.PasetoProtected(handlers.TokenManager), handlers.RemoveDiscussion)

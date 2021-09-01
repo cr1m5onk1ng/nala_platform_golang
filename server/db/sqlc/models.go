@@ -37,8 +37,9 @@ type DiscussionComment struct {
 }
 
 type Learning struct {
-	UserID   string `json:"user_id"`
-	Language string `json:"language"`
+	UserID      string `json:"user_id"`
+	Language    string `json:"language"`
+	Proficiency string `json:"proficiency"`
 }
 
 type Like struct {
@@ -134,6 +135,11 @@ type UserPost struct {
 	PostTime        time.Time      `json:"post_time"`
 	PostTitle       string         `json:"post_title"`
 	PostDescription sql.NullString `json:"post_description"`
+}
+
+type UserTopic struct {
+	UserID  string `json:"user_id"`
+	TopicID int64  `json:"topic_id"`
 }
 
 type Vote struct {

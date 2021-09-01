@@ -40,11 +40,7 @@ func IsLanguageStringValid(lang string) bool {
 
 func ValidateBodyData(ctx *fiber.Ctx, model interface{}) (interface{}, error) {
 	if err := ctx.BodyParser(model); err != nil {
-		return nil, ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":   true,
-			"message": err.Error(),
-			"data":    nil,
-		})
+		return nil, err
 	}
 	return model, nil
 }

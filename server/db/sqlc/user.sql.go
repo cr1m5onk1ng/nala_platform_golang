@@ -15,7 +15,7 @@ INSERT INTO learning (
     language
 ) VALUES (
     $1, $2
-) RETURNING user_id, language
+) RETURNING user_id, language, proficiency
 `
 
 type AddUserTargetLanguageParams struct {
@@ -26,7 +26,7 @@ type AddUserTargetLanguageParams struct {
 func (q *Queries) AddUserTargetLanguage(ctx context.Context, arg AddUserTargetLanguageParams) (Learning, error) {
 	row := q.queryRow(ctx, q.addUserTargetLanguageStmt, addUserTargetLanguage, arg.UserID, arg.Language)
 	var i Learning
-	err := row.Scan(&i.UserID, &i.Language)
+	err := row.Scan(&i.UserID, &i.Language, &i.Proficiency)
 	return i, err
 }
 
@@ -213,7 +213,7 @@ func (q *Queries) GetUserFollowers(ctx context.Context, id string) ([]GetUserFol
 }
 
 const getUserTargetLanguages = `-- name: GetUserTargetLanguages :many
-SELECT user_id, language FROM learning
+SELECT user_id, language, proficiency FROM learning
 WHERE user_id = $1
 `
 
@@ -226,7 +226,7 @@ func (q *Queries) GetUserTargetLanguages(ctx context.Context, userID string) ([]
 	items := []Learning{}
 	for rows.Next() {
 		var i Learning
-		if err := rows.Scan(&i.UserID, &i.Language); err != nil {
+		if err := rows.Scan(&i.UserID, &i.Language, &i.Proficiency); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

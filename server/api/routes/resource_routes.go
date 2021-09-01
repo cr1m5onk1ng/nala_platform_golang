@@ -13,8 +13,8 @@ func ResourceRoutes(app *fiber.App, handlers *controllers.Handlers) {
 	route.Get("/resources/:id", handlers.GetResource)
 	route.Get("/resource/:lang", handlers.GetResourcesByLanguage)
 	route.Get("/resource/:url", handlers.GetResourceByUrl)
-	route.Get("/resource/:post-id", handlers.GetResourcePost)
-	route.Get("/resource/:usr-id", handlers.GetResourcesPostsByUser)
+	route.Get("/resource/:post", handlers.GetResourcePost)
+	route.Get("/resource/:user", handlers.GetResourcesPostsByUser)
 
 	// Routes for POST method:
 	//route.Post("/resources", middleware.JWTProtected(), handlers.AddResource)

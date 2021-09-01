@@ -48,9 +48,53 @@ func (q *Queries) AddPost(ctx context.Context, arg AddPostParams) (UserPost, err
 	return i, err
 }
 
+const getCommunitiesPosts = `-- name: GetCommunitiesPosts :many
+SELECT p.id, p.user_id, p.resource_id, p.post_time, p.post_title, p.post_description FROM user_post AS p
+JOIN resources AS r
+ON p.resource_id = r.id
+JOIN learning AS l
+ON p.user_id = l.user_id
+WHERE p.user_id = $1
+AND p.language IN (
+  SELECT language FROM learning AS ll
+  WHERE ll.user_id = p.user_id
+) 
+ORDER BY p.post_time DESC
+`
+
+func (q *Queries) GetCommunitiesPosts(ctx context.Context, userID string) ([]UserPost, error) {
+	rows, err := q.query(ctx, q.getCommunitiesPostsStmt, getCommunitiesPosts, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []UserPost{}
+	for rows.Next() {
+		var i UserPost
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.ResourceID,
+			&i.PostTime,
+			&i.PostTitle,
+			&i.PostDescription,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPostById = `-- name: GetPostById :one
 SELECT id, user_id, resource_id, post_time, post_title, post_description FROM user_post
-WHERE id = $1
+WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetPostById(ctx context.Context, id string) (UserPost, error) {
@@ -140,6 +184,60 @@ func (q *Queries) GetPostTags(ctx context.Context, postID string) ([]Tag, error)
 	for rows.Next() {
 		var i Tag
 		if err := rows.Scan(&i.ID, &i.Tag); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPosts = `-- name: GetPosts :many
+SELECT p.id, p.user_id, p.resource_id, p.post_time, p.post_title, p.post_description FROM user_post AS p
+JOIN resources AS r
+ON p.resource_id = r.id
+WHERE language = $1 
+AND category = $2
+AND media_type = $3
+LIMIT $4 OFFSET $5
+`
+
+type GetPostsParams struct {
+	Language  string `json:"language"`
+	Category  string `json:"category"`
+	MediaType string `json:"media_type"`
+	Limit     int32  `json:"limit"`
+	Offset    int32  `json:"offset"`
+}
+
+func (q *Queries) GetPosts(ctx context.Context, arg GetPostsParams) ([]UserPost, error) {
+	rows, err := q.query(ctx, q.getPostsStmt, getPosts,
+		arg.Language,
+		arg.Category,
+		arg.MediaType,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []UserPost{}
+	for rows.Next() {
+		var i UserPost
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.ResourceID,
+			&i.PostTime,
+			&i.PostTitle,
+			&i.PostDescription,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -305,6 +403,52 @@ type GetPostsByMediaTypeParams struct {
 
 func (q *Queries) GetPostsByMediaType(ctx context.Context, arg GetPostsByMediaTypeParams) ([]UserPost, error) {
 	rows, err := q.query(ctx, q.getPostsByMediaTypeStmt, getPostsByMediaType, arg.MediaType, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []UserPost{}
+	for rows.Next() {
+		var i UserPost
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.ResourceID,
+			&i.PostTime,
+			&i.PostTitle,
+			&i.PostDescription,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPostsByTopic = `-- name: GetPostsByTopic :many
+SELECT p.id, p.user_id, p.resource_id, p.post_time, p.post_title, p.post_description FROM user_post as p
+JOIN post_topics AS pt
+ON p.id = pt.post_id
+JOIN topics AS t
+ON t.id = post_topics.topic_id
+WHERE t.topic = $1
+LIMIT $2 OFFSET $3
+`
+
+type GetPostsByTopicParams struct {
+	Topic  string `json:"topic"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
+}
+
+func (q *Queries) GetPostsByTopic(ctx context.Context, arg GetPostsByTopicParams) ([]UserPost, error) {
+	rows, err := q.query(ctx, q.getPostsByTopicStmt, getPostsByTopic, arg.Topic, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

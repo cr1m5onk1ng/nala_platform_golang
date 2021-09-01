@@ -19,8 +19,9 @@ CREATE TABLE "users" (
 );
 
 CREATE TABLE "learning" (
-  "user_id" varchar,
-  "language" varchar(2),
+  "user_id" varchar NOT NULL,
+  "language" varchar(2) NOT NULL,
+  "proficiency" varchar NOT NULL,
   PRIMARY KEY ("user_id", "language")
 );
 
@@ -62,6 +63,12 @@ CREATE TABLE "topics" (
   "id" bigserial PRIMARY KEY NOT NULL,
   "topic" varchar NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT 'now()'
+);
+
+CREATE TABLE "user_topics" (
+  "user_id" varchar NOT NULL,
+  "topic_id" bigint NOT NULL,
+  PRIMARY KEY ("user_id", "topic_id")
 );
 
 CREATE TABLE "post_topics" (
@@ -178,8 +185,6 @@ ALTER TABLE "post_discussions" ADD FOREIGN KEY ("post_id") REFERENCES "user_post
 
 ALTER TABLE "discussion_comments" ADD FOREIGN KEY ("discussion_id") REFERENCES "post_discussions" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "discussion_comments" ADD FOREIGN KEY ("parent_comment_id") REFERENCES "discussion_comments" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
 ALTER TABLE "discussion_comments" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "comments_likes" ADD FOREIGN KEY ("comment_id") REFERENCES "discussion_comments" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -192,6 +197,8 @@ ALTER TABLE "study_list_resource" ADD FOREIGN KEY ("study_list_id") REFERENCES "
 
 ALTER TABLE "study_list_resource" ADD FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+CREATE INDEX ON "learning" ("proficiency");
+
 CREATE INDEX ON "community" ("language");
 
 CREATE INDEX ON "user_post" ("user_id");
@@ -199,6 +206,12 @@ CREATE INDEX ON "user_post" ("user_id");
 CREATE INDEX ON "user_post" ("post_title");
 
 CREATE INDEX ON "tags" ("tag");
+
+CREATE INDEX ON "topics" ("topic");
+
+CREATE INDEX ON "user_topics" ("topic_id");
+
+CREATE INDEX ON "post_topics" ("topic_id");
 
 CREATE INDEX ON "post_discussions" ("post_id");
 

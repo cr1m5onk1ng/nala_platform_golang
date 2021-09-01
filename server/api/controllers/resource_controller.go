@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"strconv"
 
 	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
@@ -18,11 +19,7 @@ func parseResourceData(ctx *fiber.Ctx) (*domain.MappedResource, error) {
 	post, ok := resourceData.(*domain.MappedResource)
 
 	if !ok {
-		return nil, SendFailureResponse(
-			ctx,
-			fiber.StatusInternalServerError,
-			"Could not cast input data to data model",
-		)
+		return nil, fmt.Errorf("could not convert json to data model")
 	}
 	return post, nil
 }
@@ -101,7 +98,7 @@ func (h *Handlers) GetResourcesByLanguage(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetResourcesPostsByUser(ctx *fiber.Ctx) error {
-	usrId := ctx.Params("usr-id")
+	usrId := ctx.Params("user")
 
 	resources, err := h.Repo.GetResourcesPostsByUser(ctx.Context(), usrId)
 	if err != nil {
@@ -119,7 +116,7 @@ func (h *Handlers) GetResourcesPostsByUser(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetResourcePost(ctx *fiber.Ctx) error {
-	postId, err := strconv.ParseInt(ctx.Params("post-id"), 10, 64)
+	postId, err := strconv.ParseInt(ctx.Params("post"), 10, 64)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":   true,
@@ -147,7 +144,7 @@ func (h *Handlers) GetResourcePost(ctx *fiber.Ctx) error {
 func (h *Handlers) AddResource(ctx *fiber.Ctx) error {
 	resource, err := parseResourceData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	args := db.AddResourceParams{
@@ -161,7 +158,7 @@ func (h *Handlers) AddResource(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":   true,
-			"message": "An error occured: " + err.Error(),
+			"message": err.Error(),
 			"data":    nil,
 		})
 	}
@@ -176,7 +173,7 @@ func (h *Handlers) AddResource(ctx *fiber.Ctx) error {
 func (h *Handlers) AddResourceNotSecure(ctx *fiber.Ctx) error {
 	resource, err := parseResourceData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	args := db.AddResourceParams{
@@ -190,7 +187,7 @@ func (h *Handlers) AddResourceNotSecure(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":   true,
-			"message": "An error occured: " + err.Error(),
+			"message": err.Error(),
 			"data":    nil,
 		})
 	}
@@ -203,13 +200,9 @@ func (h *Handlers) AddResourceNotSecure(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) UpdateResource(ctx *fiber.Ctx) error {
-	resource, err := validation.ValidateResourceDataAndUrlAndAuthorization(ctx, &domain.MappedResource{})
+	resource, err := parseResourceData(ctx)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": "An error occured: " + err.Error(),
-			"data":    nil,
-		})
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	args := db.UpdateResourceParams{
@@ -224,7 +217,7 @@ func (h *Handlers) UpdateResource(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":   true,
-			"message": "An error occured: " + err.Error(),
+			"message": err.Error(),
 			"data":    nil,
 		})
 	}

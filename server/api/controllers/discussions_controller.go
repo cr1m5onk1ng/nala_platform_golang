@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"strconv"
 
 	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
@@ -29,11 +30,7 @@ func parseDiscussionData(ctx *fiber.Ctx) (*domain.MappedPostDiscussion, error) {
 	discussion, ok := discussionData.(*domain.MappedPostDiscussion)
 
 	if !ok {
-		return nil, SendFailureResponse(
-			ctx,
-			fiber.StatusInternalServerError,
-			"Could not cast input data to data model",
-		)
+		return nil, fmt.Errorf("could not cast json to data model")
 	}
 	return discussion, nil
 }
@@ -47,11 +44,7 @@ func parseCommentData(ctx *fiber.Ctx) (*domain.MappedPostDiscussionComment, erro
 	comment, ok := commentData.(*domain.MappedPostDiscussionComment)
 
 	if !ok {
-		return nil, SendFailureResponse(
-			ctx,
-			fiber.StatusInternalServerError,
-			"Could not cast input data to data model",
-		)
+		return nil, fmt.Errorf("could not cast json to data model")
 	}
 	return comment, nil
 }
@@ -65,11 +58,7 @@ func parseLikeData(ctx *fiber.Ctx) (*db.LikeCommentParams, error) {
 	likes, ok := likeData.(*db.LikeCommentParams)
 
 	if !ok {
-		return nil, SendFailureResponse(
-			ctx,
-			fiber.StatusInternalServerError,
-			"Could not cast input data to data model",
-		)
+		return nil, fmt.Errorf("could not cast json to data model")
 	}
 	return likes, nil
 }
@@ -79,7 +68,7 @@ func parseLikeData(ctx *fiber.Ctx) (*db.LikeCommentParams, error) {
 func (h *Handlers) CreateDiscussion(ctx *fiber.Ctx) error {
 	discussionData, err := parseDiscussionData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	args := db.AddPostDiscussionParams{
@@ -110,7 +99,7 @@ func (h *Handlers) CreateDiscussion(ctx *fiber.Ctx) error {
 func (h *Handlers) UpdateDiscussion(ctx *fiber.Ctx) error {
 	discussionData, err := parseDiscussionData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	_, err = h.checkUserPermission(ctx, discussionData.CreatorID)
@@ -145,7 +134,7 @@ func (h *Handlers) UpdateDiscussion(ctx *fiber.Ctx) error {
 func (h *Handlers) RemoveDiscussion(ctx *fiber.Ctx) error {
 	discussionData, err := parseDiscussionData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	_, err = h.checkUserPermission(ctx, discussionData.CreatorID)
@@ -182,7 +171,7 @@ func (h *Handlers) RemoveDiscussion(ctx *fiber.Ctx) error {
 func (h *Handlers) AddCommentOnDiscussion(ctx *fiber.Ctx) error {
 	commentData, err := parseCommentData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	args := db.AddCommentParams{
@@ -212,7 +201,7 @@ func (h *Handlers) AddCommentOnDiscussion(ctx *fiber.Ctx) error {
 func (h *Handlers) RemoveCommentFromDiscussion(ctx *fiber.Ctx) error {
 	commentData, err := parseCommentData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	_, err = h.checkUserPermission(ctx, commentData.UserID)
@@ -248,7 +237,7 @@ func (h *Handlers) RemoveCommentFromDiscussion(ctx *fiber.Ctx) error {
 func (h *Handlers) UpdateDiscussionComment(ctx *fiber.Ctx) error {
 	commentData, err := parseCommentData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	_, err = h.checkUserPermission(ctx, commentData.UserID)
@@ -261,7 +250,7 @@ func (h *Handlers) UpdateDiscussionComment(ctx *fiber.Ctx) error {
 		Content: commentData.Content,
 	}
 
-	_, err = h.Repo.UpdateComment(ctx.Context(), args)
+	updatedComment, err := h.Repo.UpdateComment(ctx.Context(), args)
 	if err != nil {
 		SendFailureResponse(
 			ctx,
@@ -272,14 +261,16 @@ func (h *Handlers) UpdateDiscussionComment(ctx *fiber.Ctx) error {
 
 	return SendSuccessResponse(
 		ctx,
-		fiber.StatusNoContent,
-		nil,
+		fiber.StatusOK,
+		PostDiscussionCommentResponse{
+			Content: updatedComment.Content,
+		},
 	)
 }
 
 func (h *Handlers) GetPostDiscussions(ctx *fiber.Ctx) error {
-	postId := ctx.Params("post-id")
-
+	postId := ctx.Params("post")
+	fmt.Printf("/nPost ID: %s", postId)
 	discussions, err := h.Repo.GetPostDiscussions(ctx.Context(), postId)
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
@@ -289,7 +280,7 @@ func (h *Handlers) GetPostDiscussions(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetDiscussionComments(ctx *fiber.Ctx) error {
-	discussionId, err := strconv.ParseInt(ctx.Params("discussion-id"), 10, 64)
+	discussionId, err := strconv.ParseInt(ctx.Params("discussion"), 10, 64)
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
@@ -301,7 +292,7 @@ func (h *Handlers) GetDiscussionComments(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetCommentLikes(ctx *fiber.Ctx) error {
-	commentId, err := strconv.ParseInt(ctx.Params("comment-id"), 10, 64)
+	commentId, err := strconv.ParseInt(ctx.Params("comment"), 10, 64)
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
@@ -313,7 +304,7 @@ func (h *Handlers) GetCommentLikes(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetCommentLikesCount(ctx *fiber.Ctx) error {
-	commentId, err := strconv.ParseInt(ctx.Params("comment-id"), 10, 64)
+	commentId, err := strconv.ParseInt(ctx.Params("comment"), 10, 64)
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
@@ -327,7 +318,7 @@ func (h *Handlers) GetCommentLikesCount(ctx *fiber.Ctx) error {
 func (h *Handlers) LikeComment(ctx *fiber.Ctx) error {
 	likesData, err := parseLikeData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	err = h.Repo.LikeComment(ctx.Context(), *likesData)
@@ -347,7 +338,7 @@ func (h *Handlers) LikeComment(ctx *fiber.Ctx) error {
 func (h *Handlers) UnlikeComment(ctx *fiber.Ctx) error {
 	likesData, err := parseLikeData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	_, err = h.checkUserPermission(ctx, likesData.UserID)

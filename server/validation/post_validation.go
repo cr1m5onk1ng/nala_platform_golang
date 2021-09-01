@@ -1,6 +1,8 @@
 package validation
 
 import (
+	"fmt"
+
 	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
 	"github.com/cr1m5onk1ng/nala_platform_app/domain"
 	"github.com/cr1m5onk1ng/nala_platform_app/util"
@@ -10,11 +12,7 @@ import (
 
 func ValidatePostData(ctx *fiber.Ctx, post *domain.MappedUserPost) (*domain.MappedUserPost, error) {
 	if err := ctx.BodyParser(post); err != nil {
-		return nil, ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":   true,
-			"message": err.Error(),
-			"data":    nil,
-		})
+		return nil, err
 	}
 
 	post.ID = uuid.NewString()
@@ -43,18 +41,10 @@ func isDifficultyWithinValues(difficultyVote string) bool {
 
 func ValidateVoteData(ctx *fiber.Ctx, vote *db.VotePostParams) (*db.VotePostParams, error) {
 	if err := ctx.BodyParser(vote); err != nil {
-		return nil, ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":   true,
-			"message": err.Error(),
-			"data":    nil,
-		})
+		return nil, err
 	}
 	if !isDifficultyWithinValues(vote.Difficulty) {
-		return nil, ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":   true,
-			"message": "invalid difficulty string passed",
-			"data":    nil,
-		})
+		return nil, fmt.Errorf("invalid difficulty string")
 	}
 	return vote, nil
 }

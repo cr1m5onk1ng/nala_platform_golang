@@ -1,6 +1,37 @@
+-- name: GetPosts :many
+SELECT p.* FROM user_post AS p
+JOIN resources AS r
+ON p.resource_id = r.id
+WHERE language = $1 
+AND category = $2
+AND media_type = $3
+LIMIT $4 OFFSET $5;
+
+-- name: GetCommunitiesPosts :many
+SELECT p.* FROM user_post AS p
+JOIN resources AS r
+ON p.resource_id = r.id
+JOIN learning AS l
+ON p.user_id = l.user_id
+WHERE p.user_id = $1
+AND p.language IN (
+  SELECT language FROM learning AS ll
+  WHERE ll.user_id = p.user_id
+) 
+ORDER BY p.post_time DESC;
+
 -- name: GetPostById :one
 SELECT * FROM user_post
-WHERE id = $1;
+WHERE id = $1 LIMIT 1;
+
+-- name: GetPostsByTopic :many
+SELECT p.* FROM user_post as p
+JOIN post_topics AS pt
+ON p.id = pt.post_id
+JOIN topics AS t
+ON t.id = post_topics.topic_id
+WHERE t.topic = $1
+LIMIT $2 OFFSET $3;
 
 -- name: GetPostsByLanguage :many
 SELECT p.* FROM user_post AS p

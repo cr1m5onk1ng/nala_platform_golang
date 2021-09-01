@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
+	"strconv"
 
 	"github.com/cr1m5onk1ng/nala_platform_app/constants"
 	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
@@ -9,7 +11,6 @@ import (
 	"github.com/cr1m5onk1ng/nala_platform_app/util"
 	"github.com/cr1m5onk1ng/nala_platform_app/validation"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
@@ -33,15 +34,63 @@ func parseVoteData(ctx *fiber.Ctx) (*db.VotePostParams, error) {
 
 // CONTROLLERS
 
-func (h *Handlers) GetPost(ctx *fiber.Ctx) error {
-	id, err := util.ParseRequestParam(ctx.Params("post-id"))
+func (h *Handlers) GetPosts(ctx *fiber.Ctx) error {
+	mediaType := ctx.Query("media")
+	category := ctx.Query("cat")
+	language := ctx.Query("lang")
+	maxResults, err := strconv.ParseInt(ctx.Query("max"), 10, 32)
 	if err != nil {
-		return SendFailureResponse(
-			ctx,
-			fiber.StatusInternalServerError,
-			err.Error(),
-		)
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
+	offset, err := strconv.ParseInt(ctx.Query("offset"), 10, 32)
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
+	}
+
+	fmt.Printf("Media: %s; category: %s; language %s; max: %d; offset: %d\n",
+		mediaType, category, language, maxResults, offset,
+	)
+
+	args := db.GetPostsParams{
+		Language:  language,
+		Category:  category,
+		MediaType: mediaType,
+		Limit:     int32(maxResults),
+		Offset:    int32(offset),
+	}
+
+	posts, err := h.Repo.GetPosts(ctx.Context(), args)
+	if err != nil {
+		SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
+	}
+	return SendSuccessResponse(ctx, fiber.StatusOK, posts)
+}
+
+func (h *Handlers) GetPostsByTopic(ctx *fiber.Ctx) error {
+	topic := ctx.Params("topic")
+	maxResults, err := strconv.ParseInt(ctx.Params("max"), 10, 32)
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
+	}
+	offset, err := strconv.ParseInt(ctx.Params("offset"), 10, 32)
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
+	}
+
+	args := db.GetPostsByTopicParams{
+		Topic:  topic,
+		Limit:  int32(maxResults),
+		Offset: int32(offset),
+	}
+	posts, err := h.Repo.GetPostsByTopic(ctx.Context(), args)
+	if err != nil {
+		SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
+	}
+	return SendSuccessResponse(ctx, fiber.StatusOK, posts)
+}
+
+func (h *Handlers) GetPost(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
 
 	post, err := h.Repo.GetPostById(ctx.Context(), id)
 	if err != nil {
@@ -125,13 +174,12 @@ func (h *Handlers) GetPostsByDifficulty(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetPostsByUser(ctx *fiber.Ctx) error {
-	id, err := uuid.Parse(ctx.Params("usr-id"))
+	id, err := util.ParseRequestParam(ctx.Params("user"))
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
-
 	args := db.GetPostsByUserParams{
-		UserID: id.String(),
+		UserID: id,
 		Limit:  constants.LIMIT,
 		Offset: constants.OFFSET,
 	}
@@ -211,7 +259,7 @@ func (h *Handlers) GetPostsByMediaType(ctx *fiber.Ctx) error {
 func (h *Handlers) AddPost(ctx *fiber.Ctx) error {
 	post, err := parsePostData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	args := db.AddPostParams{
@@ -237,7 +285,7 @@ func (h *Handlers) AddPost(ctx *fiber.Ctx) error {
 
 	return SendSuccessResponse(
 		ctx,
-		fiber.StatusOK,
+		fiber.StatusCreated,
 		addedPost,
 	)
 }
@@ -245,7 +293,7 @@ func (h *Handlers) AddPost(ctx *fiber.Ctx) error {
 func (h *Handlers) AddPostNotSecure(ctx *fiber.Ctx) error {
 	post, err := validation.ValidatePostData(ctx, &domain.MappedUserPost{})
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	args := db.AddPostParams{
@@ -271,7 +319,7 @@ func (h *Handlers) AddPostNotSecure(ctx *fiber.Ctx) error {
 
 	return SendSuccessResponse(
 		ctx,
-		fiber.StatusOK,
+		fiber.StatusCreated,
 		addedPost,
 	)
 }
@@ -279,7 +327,7 @@ func (h *Handlers) AddPostNotSecure(ctx *fiber.Ctx) error {
 func (h *Handlers) UpdatePost(ctx *fiber.Ctx) error {
 	post, err := parsePostData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	_, err = h.checkUserPermission(ctx, post.UserID)
@@ -314,7 +362,7 @@ func (h *Handlers) UpdatePost(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetPostTags(ctx *fiber.Ctx) error {
-	postId := ctx.Params("post-id")
+	postId := ctx.Params("post")
 
 	tags, err := h.Repo.GetPostTags(ctx.Context(), postId)
 
@@ -335,7 +383,7 @@ func (h *Handlers) GetPostTags(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetPostDifficultyVotes(ctx *fiber.Ctx) error {
-	postId := ctx.Params("post_id")
+	postId := ctx.Params("post")
 
 	votes, err := h.Repo.GetPostDifficultyVotes(ctx.Context(), postId)
 
@@ -355,7 +403,7 @@ func (h *Handlers) GetPostDifficultyVotes(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetPostLikes(ctx *fiber.Ctx) error {
-	postId := ctx.Params("post-id")
+	postId := ctx.Params("post")
 
 	likes, err := h.Repo.GetPostLikes(ctx.Context(), postId)
 
@@ -375,7 +423,7 @@ func (h *Handlers) GetPostLikes(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) RemovePost(ctx *fiber.Ctx) error {
-	postId := ctx.Params("post-id")
+	postId := ctx.Params("post")
 
 	postData, err := h.Repo.GetPostById(ctx.Context(), postId)
 	if err != nil {
@@ -410,7 +458,7 @@ func (h *Handlers) RemovePost(ctx *fiber.Ctx) error {
 func (h *Handlers) VotePost(ctx *fiber.Ctx) error {
 	vote, err := parseVoteData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	args := db.VotePostParams{
@@ -434,7 +482,7 @@ func (h *Handlers) VotePost(ctx *fiber.Ctx) error {
 
 	return SendSuccessResponse(
 		ctx,
-		fiber.StatusOK,
+		fiber.StatusCreated,
 		addedVote,
 	)
 }
@@ -442,7 +490,7 @@ func (h *Handlers) VotePost(ctx *fiber.Ctx) error {
 func (h *Handlers) UpdateVote(ctx *fiber.Ctx) error {
 	vote, err := parseVoteData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	_, err = h.checkUserPermission(ctx, vote.UserID)
@@ -478,7 +526,7 @@ func (h *Handlers) UpdateVote(ctx *fiber.Ctx) error {
 func (h *Handlers) RemoveVote(ctx *fiber.Ctx) error {
 	vote, err := parseVoteData(ctx)
 	if err != nil {
-		return err
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
 
 	_, err = h.checkUserPermission(ctx, vote.UserID)

@@ -1,6 +1,6 @@
 import {
-  START_LOADING,
-  END_LOADING,
+  START_LOADING_POSTS,
+  END_LOADING_POSTS,
   FETCH_ALL_POSTS,
   FETCH_POSTS_BY_LANGUAGE,
   FETCH_POST,
@@ -13,29 +13,32 @@ import {
   FETCH_POST_BY_CREATOR,
 } from "../constants/actionTypes";
 
-export default (state = { isLoading: true, posts: [] }, action) => {
+const POSTS_INITIAL_STATE = {
+  posts: [],
+  isLoading: false,
+};
+
+export default (state = POSTS_INITIAL_STATE, action) => {
   switch (action.type) {
-    case START_LOADING:
+    case START_LOADING_POSTS:
       return { ...state, isLoading: true };
-    case END_LOADING:
+    case END_LOADING_POSTS:
       return { ...state, isLoading: false };
     case FETCH_ALL_POSTS:
       return {
         ...state,
-        posts: action.payload.data,
+        posts: action.payload.posts,
       };
     case FETCH_POSTS_BY_LANGUAGE:
       return {
         ...state,
-        posts: action.payload.data,
-        currentPage: action.payload.currentPage,
-        numberOfPages: action.payload.numberOfPages,
+        posts: action.payload.posts,
       };
     case FETCH_POSTS_BY_SEARCH:
     case FETCH_POST_BY_CREATOR:
-      return { ...state, posts: action.payload.data };
+      return { ...state, posts: action.payload.posts };
     case FETCH_POST:
-      return { ...state, post: action.payload.post };
+      return { ...state, posts: action.payload.posts };
     case LIKE_POST:
       return {
         ...state,
@@ -47,7 +50,7 @@ export default (state = { isLoading: true, posts: [] }, action) => {
       return {
         ...state,
         posts: state.posts.map((post) => {
-          if (post._id === +action.payload._id) {
+          if (post._id === action.payload._id) {
             return action.payload;
           }
           return post;

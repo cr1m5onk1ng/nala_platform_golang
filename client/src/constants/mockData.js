@@ -2,7 +2,8 @@ import { FETCH_POSTS_BY_LANGUAGE_AND_CATEGORY_AND_MEDIA } from "./actionTypes";
 
 export const posts = [
   {
-    title: "Best youtube video ever",
+    title:
+      "Best youtube video ever let's just make it a little bit longer to see what happens",
     mediaType: "Video",
     description:
       "whatever a description may look like. Something like this video is so cool bruh you sould watch it let's just make it longer for the sake of testing",

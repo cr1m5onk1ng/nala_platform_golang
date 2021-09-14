@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useHistory } from "react-router-dom";
 import useStyles from "./styles";
 import HomeAppBar from "./HomeAppBar/HomeAppBar";
 import HomeDrawer from "./HomeDrawer/HomeDrawer";
@@ -13,18 +14,30 @@ import {
 import FormPopUp from "./HomeAppBar/Form/FormPopUp";
 import PostForm from "./HomeAppBar/Form/PostForm";
 
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { getPosts } from "../../actions/posts";
 import Posts from "../Posts/Posts";
 import Sidebar from "./Sidebar/Sidebar";
+import axios from "axios";
+import { decode } from "paseto";
 
 function Home({ darkMode, setDarkMode }) {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const history = useHistory();
+
+  // USER STATE
+  const userState = useSelector((state) => state.user);
+
+  useEffect(() => {
+    localStorage.setItem("user", JSON.stringify(userState));
+  }, [userState]);
   /*
   useEffect(() => {
     dispatch(getPosts());
   }, [dispatch]);*/
+
+  // MENUS STATE
   const [currentId, setCurrentId] = useState(0);
 
   const [drawerVisible, setDrawerVisibile] = useState(false);

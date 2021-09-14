@@ -2,8 +2,8 @@ import { combineReducers } from "redux";
 
 import posts from "./posts";
 import menus from "./menus";
-//import auth from './auth';
+import user from "./user.js";
 
-const reducers = combineReducers({ posts, menus });
+const reducers = combineReducers({ posts, menus, user });
 
 export default reducers;

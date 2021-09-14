@@ -2,7 +2,7 @@ CREATE TABLE "resources" (
   "id" bigserial PRIMARY KEY,
   "url" varchar UNIQUE NOT NULL,
   "language" varchar(2) NOT NULL,
-  "difficulty" varchar NOT NULL,
+  "difficulty" varchar(1) NOT NULL,
   "media_type" varchar NOT NULL,
   "category" varchar NOT NULL
 );
@@ -13,15 +13,23 @@ CREATE TABLE "users" (
   "email" varchar UNIQUE NOT NULL,
   "hashed_password" varchar NOT NULL,
   "password_changed_at" timestamptz NOT NULL DEFAULT '0001-01-01 00:00:00+00',
-  "registration_date" timestamptz NOT NULL DEFAULT 'now()',
+  "registered_at" timestamptz NOT NULL DEFAULT 'now()',
   "native_language" varchar(2) NOT NULL,
-  "role" varchar
+  "role" varchar,
+  "access_token" varchar
+);
+
+CREATE TABLE "tokens" (
+  "token" varchar PRIMARY KEY NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT 'now()',
+  "expired_at" timestamptz NOT NULL DEFAULT '0001-01-01 00:00:00+00',
+  "invalidated_at" timestamptz DEFAULT '0001-01-01 00:00:00+00'
 );
 
 CREATE TABLE "learning" (
   "user_id" varchar NOT NULL,
   "language" varchar(2) NOT NULL,
-  "proficiency" varchar NOT NULL,
+  "proficiency" varchar(1) NOT NULL,
   PRIMARY KEY ("user_id", "language")
 );
 
@@ -80,7 +88,7 @@ CREATE TABLE "post_topics" (
 CREATE TABLE "votes" (
   "user_id" varchar NOT NULL,
   "post_id" varchar NOT NULL,
-  "difficulty" varchar NOT NULL,
+  "difficulty" varchar(1) NOT NULL,
   PRIMARY KEY ("user_id", "post_id")
 );
 
@@ -145,6 +153,8 @@ CREATE TABLE "study_list_resource" (
   PRIMARY KEY ("study_list_id", "resource_id")
 );
 
+ALTER TABLE "users" ADD FOREIGN KEY ("access_token") REFERENCES "tokens" ("token") ON DELETE SET NULL ON UPDATE CASCADE;
+
 ALTER TABLE "learning" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE "community_users" ADD FOREIGN KEY ("community_id") REFERENCES "community" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -197,6 +207,8 @@ ALTER TABLE "study_list_resource" ADD FOREIGN KEY ("study_list_id") REFERENCES "
 
 ALTER TABLE "study_list_resource" ADD FOREIGN KEY ("resource_id") REFERENCES "resources" ("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
+CREATE INDEX ON "learning" ("language");
+
 CREATE INDEX ON "learning" ("proficiency");
 
 CREATE INDEX ON "community" ("language");
@@ -225,8 +237,12 @@ CREATE INDEX ON "study_lists" ("user_id");
 
 COMMENT ON COLUMN "resources"."language" IS '2 chars language code';
 
+COMMENT ON COLUMN "resources"."difficulty" IS 'B | I | A | N';
+
 COMMENT ON COLUMN "users"."id" IS 'use UUID';
 
 COMMENT ON COLUMN "users"."native_language" IS '2 chars language code';
+
+COMMENT ON COLUMN "learning"."proficiency" IS 'B | I | A | N';
 
 COMMENT ON COLUMN "user_post"."id" IS 'use UUID';

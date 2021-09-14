@@ -48,7 +48,7 @@ func PasetoProtected(tokenManager validation.TokenManager) fiber.Handler {
 		if err != nil {
 			return controllers.SendFailureResponse(
 				ctx,
-				fiber.StatusUnauthorized,
+				fiber.StatusForbidden,
 				err.Error(),
 			)
 		}

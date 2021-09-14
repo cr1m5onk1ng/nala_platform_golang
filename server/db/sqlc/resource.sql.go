@@ -109,11 +109,59 @@ func (q *Queries) GetResourcePost(ctx context.Context, resourceID int64) (UserPo
 const getResourcesByLanguage = `-- name: GetResourcesByLanguage :many
 SELECT id, url, language, difficulty, media_type, category FROM resources
 WHERE language = $1
-ORDER BY inserted_at DESC
+ORDER BY id DESC LIMIT $2
 `
 
-func (q *Queries) GetResourcesByLanguage(ctx context.Context, language string) ([]Resource, error) {
-	rows, err := q.query(ctx, q.getResourcesByLanguageStmt, getResourcesByLanguage, language)
+type GetResourcesByLanguageParams struct {
+	Language string `json:"language"`
+	Limit    int32  `json:"limit"`
+}
+
+func (q *Queries) GetResourcesByLanguage(ctx context.Context, arg GetResourcesByLanguageParams) ([]Resource, error) {
+	rows, err := q.query(ctx, q.getResourcesByLanguageStmt, getResourcesByLanguage, arg.Language, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Resource{}
+	for rows.Next() {
+		var i Resource
+		if err := rows.Scan(
+			&i.ID,
+			&i.Url,
+			&i.Language,
+			&i.Difficulty,
+			&i.MediaType,
+			&i.Category,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getResourcesByLanguageByCursor = `-- name: GetResourcesByLanguageByCursor :many
+SELECT id, url, language, difficulty, media_type, category FROM resources
+WHERE language = $1
+AND id < $2
+ORDER BY id DESC LIMIT $3
+`
+
+type GetResourcesByLanguageByCursorParams struct {
+	Language   string `json:"language"`
+	Cursor     int64  `json:"cursor"`
+	Maxresults int32  `json:"maxresults"`
+}
+
+func (q *Queries) GetResourcesByLanguageByCursor(ctx context.Context, arg GetResourcesByLanguageByCursorParams) ([]Resource, error) {
+	rows, err := q.query(ctx, q.getResourcesByLanguageByCursorStmt, getResourcesByLanguageByCursor, arg.Language, arg.Cursor, arg.Maxresults)
 	if err != nil {
 		return nil, err
 	}
@@ -143,27 +191,34 @@ func (q *Queries) GetResourcesByLanguage(ctx context.Context, language string) (
 }
 
 const getResourcesPostsByUser = `-- name: GetResourcesPostsByUser :many
-SELECT id, user_id, resource_id, post_time, post_title, post_description FROM user_post
-WHERE user_id = $1
-ORDER BY post_time DESC
+SELECT r.id, r.url, r.language, r.difficulty, r.media_type, r.category FROM resources AS r
+JOIN user_post AS p
+ON r.id = p.resource_id
+WHERE p.user_id = $1
+ORDER BY id DESC LIMIT $2
 `
 
-func (q *Queries) GetResourcesPostsByUser(ctx context.Context, userID string) ([]UserPost, error) {
-	rows, err := q.query(ctx, q.getResourcesPostsByUserStmt, getResourcesPostsByUser, userID)
+type GetResourcesPostsByUserParams struct {
+	UserID string `json:"user_id"`
+	Limit  int32  `json:"limit"`
+}
+
+func (q *Queries) GetResourcesPostsByUser(ctx context.Context, arg GetResourcesPostsByUserParams) ([]Resource, error) {
+	rows, err := q.query(ctx, q.getResourcesPostsByUserStmt, getResourcesPostsByUser, arg.UserID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []UserPost{}
+	items := []Resource{}
 	for rows.Next() {
-		var i UserPost
+		var i Resource
 		if err := rows.Scan(
 			&i.ID,
-			&i.UserID,
-			&i.ResourceID,
-			&i.PostTime,
-			&i.PostTitle,
-			&i.PostDescription,
+			&i.Url,
+			&i.Language,
+			&i.Difficulty,
+			&i.MediaType,
+			&i.Category,
 		); err != nil {
 			return nil, err
 		}

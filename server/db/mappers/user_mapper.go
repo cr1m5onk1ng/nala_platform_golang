@@ -16,7 +16,7 @@ func mapUser(user db.User) interface{} {
 	}{
 		ID:               user.ID,
 		Username:         user.Username,
-		RegistrationDate: user.RegistrationDate,
+		RegistrationDate: user.RegisteredAt,
 		NativeLanguage:   user.NativeLanguage,
 		Role:             user.Role.String,
 	}

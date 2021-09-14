@@ -12,11 +12,11 @@ func PostRoutes(app *fiber.App, handlers *controllers.Handlers) {
 	// Routes for GET method
 	route.Get("/posts/q", handlers.GetPosts)
 	route.Get("/posts/:id", handlers.GetPost)
-	route.Get("/posts/:lang", handlers.GetPostsByLanguage)
-	route.Get("/posts/:user", handlers.GetPostsByUser)
-	route.Get("/posts/:cat", handlers.GetPostsByCategory)
-	route.Get("/posts/:diff", handlers.GetPostsByDifficulty)
-	route.Get("/posts/:media", handlers.GetPostsByMediaType)
+	route.Get("/posts/langs/:lang", handlers.GetPostsByLanguage)
+	route.Get("/posts/users/:user", handlers.GetPostsByUser)
+	route.Get("/posts/categories/:cat", handlers.GetPostsByCategory)
+	route.Get("/posts/difficulties/:diff", handlers.GetPostsByDifficulty)
+	route.Get("/posts/medias/:media", handlers.GetPostsByMediaType)
 	route.Get("/posts/:post/tags", handlers.GetPostTags)
 	route.Get("/posts/:post/likes", handlers.GetPostLikes)
 

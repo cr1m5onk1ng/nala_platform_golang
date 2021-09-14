@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"time"
 
 	db "github.com/cr1m5onk1ng/nala_platform_app/db/sqlc"
 	"github.com/cr1m5onk1ng/nala_platform_app/domain"
@@ -17,10 +18,12 @@ type userResponse struct {
 	Username       string `json:"username"`
 	Email          string `json:"email"`
 	NativeLanguage string `json:"native_language"`
+	Token          string `json:"token"`
 }
 
 type loginUserResponse struct {
-	AccessToken string `json:"access_token"`
+	User        userResponse `json:"user"`
+	AccessToken string       `json:"access_token"`
 }
 
 func (h *Handlers) checkUserPermission(ctx *fiber.Ctx, id string) (db.User, error) {
@@ -47,6 +50,7 @@ func (h *Handlers) LoginUser(ctx *fiber.Ctx) error {
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
+
 	user, err := h.Repo.GetUserByEmail(ctx.Context(), loginReq.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -58,14 +62,58 @@ func (h *Handlers) LoginUser(ctx *fiber.Ctx) error {
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusUnauthorized, err.Error())
 	}
+
 	token, err := h.TokenManager.CreateToken(user.Username, user.Email, h.Config.PASETO_TOKEN_DURATION)
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
+	refreshToken, err := h.TokenManager.CreateRefreshToken(user.Username, user.Email)
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
+	}
+
+	_, err = h.Repo.AddToken(ctx.Context(), db.AddTokenParams{
+		Token:     refreshToken,
+		ExpiredAt: time.Now().Add(h.Config.PASETO_TOKEN_DURATION),
+	})
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
+	}
+
+	_, err = h.Repo.UpdateUserToken(ctx.Context(), db.UpdateUserTokenParams{
+		Email:       user.Email,
+		AccessToken: sql.NullString{String: refreshToken, Valid: true},
+	})
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
+	}
+
+	userResponse := userResponse{
+		Username:       user.Username,
+		Email:          user.Email,
+		NativeLanguage: user.NativeLanguage,
+		Token:          refreshToken,
+	}
+
 	response := loginUserResponse{
+		User:        userResponse,
 		AccessToken: token,
 	}
+
 	return SendSuccessResponse(ctx, fiber.StatusOK, response)
+}
+
+func (h *Handlers) LogoutUser(ctx *fiber.Ctx) error {
+	logoutReq := &domain.LogoutRequest{}
+	err := ctx.BodyParser(logoutReq)
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
+	}
+	err = h.Repo.InvalidateToken(ctx.Context(), logoutReq.Token)
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
+	}
+	return SendSuccessResponse(ctx, fiber.StatusOK, "logout succeded")
 }
 
 func (h *Handlers) GetUser(ctx *fiber.Ctx) error {
@@ -74,7 +122,19 @@ func (h *Handlers) GetUser(ctx *fiber.Ctx) error {
 	if err != nil {
 		return handleUserAuthError(ctx, err)
 	}
-	return SendSuccessResponse(ctx, fiber.StatusOK, user)
+	var userToken string = ""
+	if user.AccessToken.Valid {
+		userToken = user.AccessToken.String
+	}
+	userResponse := userResponse{
+		Username:       user.Username,
+		Email:          user.Email,
+		NativeLanguage: user.NativeLanguage,
+		Token:          userToken,
+	}
+	return SendSuccessResponse(ctx, fiber.StatusOK, loginUserResponse{
+		User: userResponse,
+	})
 }
 
 func (h *Handlers) GetAllUsers(ctx *fiber.Ctx) error {

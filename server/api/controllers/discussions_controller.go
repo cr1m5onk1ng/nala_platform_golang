@@ -269,13 +269,38 @@ func (h *Handlers) UpdateDiscussionComment(ctx *fiber.Ctx) error {
 }
 
 func (h *Handlers) GetPostDiscussions(ctx *fiber.Ctx) error {
+	var err error
 	postId := ctx.Params("post")
-	fmt.Printf("/nPost ID: %s", postId)
-	discussions, err := h.Repo.GetPostDiscussions(ctx.Context(), postId)
+	cursor := ctx.Query("cursor")
+	maxResults, err := strconv.ParseInt(ctx.Query("max"), 10, 32)
 	if err != nil {
-		return SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
-
+	var discussions []db.PostDiscussion
+	if cursor != "" {
+		convCursor, err := strconv.ParseInt(cursor, 10, 32)
+		if err != nil {
+			return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
+		}
+		args := db.GetPostDiscussionsByCursorParams{
+			Postid:     postId,
+			Cursor:     convCursor,
+			Maxresults: int32(maxResults),
+		}
+		discussions, err = h.Repo.GetPostDiscussionsByCursor(ctx.Context(), args)
+		if err != nil {
+			return SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
+		}
+	} else {
+		args := db.GetPostDiscussionsParams{
+			Postid:     postId,
+			Maxresults: int32(maxResults),
+		}
+		discussions, err = h.Repo.GetPostDiscussions(ctx.Context(), args)
+		if err != nil {
+			return SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
+		}
+	}
 	return SendSuccessResponse(ctx, fiber.StatusOK, discussions)
 }
 
@@ -284,9 +309,35 @@ func (h *Handlers) GetDiscussionComments(ctx *fiber.Ctx) error {
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
-	comments, err := h.Repo.GetAllDiscussionComments(ctx.Context(), discussionId)
+	cursor := ctx.Query("cursor")
+	maxResults, err := strconv.ParseInt(ctx.Query("max"), 10, 32)
 	if err != nil {
-		return SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
+	}
+	var comments []db.DiscussionComment
+	if cursor != "" {
+		convCursor, err := strconv.ParseInt(cursor, 10, 32)
+		if err != nil {
+			return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
+		}
+		args := db.GetAllDiscussionCommentsByCursorParams{
+			Discussionid: discussionId,
+			Cursor:       convCursor,
+			Maxresults:   int32(maxResults),
+		}
+		comments, err = h.Repo.GetAllDiscussionCommentsByCursor(ctx.Context(), args)
+		if err != nil {
+			return SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
+		}
+	} else {
+		args := db.GetAllDiscussionCommentsParams{
+			DiscussionID: discussionId,
+			Limit:        int32(maxResults),
+		}
+		comments, err = h.Repo.GetAllDiscussionComments(ctx.Context(), args)
+		if err != nil {
+			return SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
+		}
 	}
 	return SendSuccessResponse(ctx, fiber.StatusOK, comments)
 }

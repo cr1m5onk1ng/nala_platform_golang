@@ -48,10 +48,60 @@ func (q *Queries) AddComment(ctx context.Context, arg AddCommentParams) (Discuss
 const getAllDiscussionComments = `-- name: GetAllDiscussionComments :many
 SELECT id, discussion_id, parent_comment_id, user_id, created_at, updated_at, content FROM discussion_comments
 WHERE discussion_id = $1
+ORDER BY id DESC LIMIT $2
 `
 
-func (q *Queries) GetAllDiscussionComments(ctx context.Context, discussionID int64) ([]DiscussionComment, error) {
-	rows, err := q.query(ctx, q.getAllDiscussionCommentsStmt, getAllDiscussionComments, discussionID)
+type GetAllDiscussionCommentsParams struct {
+	DiscussionID int64 `json:"discussion_id"`
+	Limit        int32 `json:"limit"`
+}
+
+func (q *Queries) GetAllDiscussionComments(ctx context.Context, arg GetAllDiscussionCommentsParams) ([]DiscussionComment, error) {
+	rows, err := q.query(ctx, q.getAllDiscussionCommentsStmt, getAllDiscussionComments, arg.DiscussionID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DiscussionComment{}
+	for rows.Next() {
+		var i DiscussionComment
+		if err := rows.Scan(
+			&i.ID,
+			&i.DiscussionID,
+			&i.ParentCommentID,
+			&i.UserID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Content,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllDiscussionCommentsByCursor = `-- name: GetAllDiscussionCommentsByCursor :many
+SELECT id, discussion_id, parent_comment_id, user_id, created_at, updated_at, content FROM discussion_comments
+WHERE discussion_id = $1
+AND id < $2
+ORDER BY id DESC LIMIT $3
+`
+
+type GetAllDiscussionCommentsByCursorParams struct {
+	Discussionid int64 `json:"discussionid"`
+	Cursor       int64 `json:"cursor"`
+	Maxresults   int32 `json:"maxresults"`
+}
+
+func (q *Queries) GetAllDiscussionCommentsByCursor(ctx context.Context, arg GetAllDiscussionCommentsByCursorParams) ([]DiscussionComment, error) {
+	rows, err := q.query(ctx, q.getAllDiscussionCommentsByCursorStmt, getAllDiscussionCommentsByCursor, arg.Discussionid, arg.Cursor, arg.Maxresults)
 	if err != nil {
 		return nil, err
 	}

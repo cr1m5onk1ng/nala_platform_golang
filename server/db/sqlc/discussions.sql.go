@@ -67,11 +67,59 @@ func (q *Queries) GetPostDiscussionById(ctx context.Context, id int64) (PostDisc
 const getPostDiscussions = `-- name: GetPostDiscussions :many
 SELECT id, creator_id, post_id, creation_time, title, description FROM post_discussions
 WHERE post_id = $1
-ORDER BY creation_time DESC
+ORDER BY id DESC LIMIT $2
 `
 
-func (q *Queries) GetPostDiscussions(ctx context.Context, postID string) ([]PostDiscussion, error) {
-	rows, err := q.query(ctx, q.getPostDiscussionsStmt, getPostDiscussions, postID)
+type GetPostDiscussionsParams struct {
+	Postid     string `json:"postid"`
+	Maxresults int32  `json:"maxresults"`
+}
+
+func (q *Queries) GetPostDiscussions(ctx context.Context, arg GetPostDiscussionsParams) ([]PostDiscussion, error) {
+	rows, err := q.query(ctx, q.getPostDiscussionsStmt, getPostDiscussions, arg.Postid, arg.Maxresults)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []PostDiscussion{}
+	for rows.Next() {
+		var i PostDiscussion
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatorID,
+			&i.PostID,
+			&i.CreationTime,
+			&i.Title,
+			&i.Description,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPostDiscussionsByCursor = `-- name: GetPostDiscussionsByCursor :many
+SELECT id, creator_id, post_id, creation_time, title, description FROM post_discussions
+WHERE post_id = $1
+AND id < $2
+ORDER BY id DESC LIMIT $3
+`
+
+type GetPostDiscussionsByCursorParams struct {
+	Postid     string `json:"postid"`
+	Cursor     int64  `json:"cursor"`
+	Maxresults int32  `json:"maxresults"`
+}
+
+func (q *Queries) GetPostDiscussionsByCursor(ctx context.Context, arg GetPostDiscussionsByCursorParams) ([]PostDiscussion, error) {
+	rows, err := q.query(ctx, q.getPostDiscussionsByCursorStmt, getPostDiscussionsByCursor, arg.Postid, arg.Cursor, arg.Maxresults)
 	if err != nil {
 		return nil, err
 	}
@@ -103,11 +151,58 @@ func (q *Queries) GetPostDiscussions(ctx context.Context, postID string) ([]Post
 const getPostDiscussionsByUser = `-- name: GetPostDiscussionsByUser :many
 SELECT id, creator_id, post_id, creation_time, title, description FROM post_discussions
 WHERE creator_id = $1
-ORDER BY creation_time DESC
+ORDER BY id DESC LIMIT $2
 `
 
-func (q *Queries) GetPostDiscussionsByUser(ctx context.Context, creatorID string) ([]PostDiscussion, error) {
-	rows, err := q.query(ctx, q.getPostDiscussionsByUserStmt, getPostDiscussionsByUser, creatorID)
+type GetPostDiscussionsByUserParams struct {
+	Creatorid  string `json:"creatorid"`
+	Maxresults int32  `json:"maxresults"`
+}
+
+func (q *Queries) GetPostDiscussionsByUser(ctx context.Context, arg GetPostDiscussionsByUserParams) ([]PostDiscussion, error) {
+	rows, err := q.query(ctx, q.getPostDiscussionsByUserStmt, getPostDiscussionsByUser, arg.Creatorid, arg.Maxresults)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []PostDiscussion{}
+	for rows.Next() {
+		var i PostDiscussion
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatorID,
+			&i.PostID,
+			&i.CreationTime,
+			&i.Title,
+			&i.Description,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPostDiscussionsByUserByCursor = `-- name: GetPostDiscussionsByUserByCursor :many
+SELECT id, creator_id, post_id, creation_time, title, description FROM post_discussions
+WHERE creator_id = $1
+AND id < slqc.arg(cursor)
+ORDER BY id DESC LIMIT $2
+`
+
+type GetPostDiscussionsByUserByCursorParams struct {
+	Creatorid  string `json:"creatorid"`
+	Maxresults int32  `json:"maxresults"`
+}
+
+func (q *Queries) GetPostDiscussionsByUserByCursor(ctx context.Context, arg GetPostDiscussionsByUserByCursorParams) ([]PostDiscussion, error) {
+	rows, err := q.query(ctx, q.getPostDiscussionsByUserByCursorStmt, getPostDiscussionsByUserByCursor, arg.Creatorid, arg.Maxresults)
 	if err != nil {
 		return nil, err
 	}

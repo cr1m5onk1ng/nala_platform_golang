@@ -79,10 +79,15 @@ func (h *Handlers) GetResourceByUrl(ctx *fiber.Ctx) error {
 
 func (h *Handlers) GetResourcesByLanguage(ctx *fiber.Ctx) error {
 	lang := ctx.Params("lang")
-
-	// ADD LANGUAGE VALIDATION
-
-	resources, err := h.Repo.GetResourcesByLanguage(ctx.Context(), lang)
+	maxResults, err := strconv.ParseInt(ctx.Query("max"), 10, 32)
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
+	}
+	args := db.GetResourcesByLanguageParams{
+		Language: lang,
+		Limit:    int32(maxResults),
+	}
+	resources, err := h.Repo.GetResourcesByLanguage(ctx.Context(), args)
 	if err != nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error":   true,
@@ -99,8 +104,15 @@ func (h *Handlers) GetResourcesByLanguage(ctx *fiber.Ctx) error {
 
 func (h *Handlers) GetResourcesPostsByUser(ctx *fiber.Ctx) error {
 	usrId := ctx.Params("user")
-
-	resources, err := h.Repo.GetResourcesPostsByUser(ctx.Context(), usrId)
+	maxResults, err := strconv.ParseInt(ctx.Query("max"), 10, 32)
+	if err != nil {
+		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
+	}
+	args := db.GetResourcesPostsByUserParams{
+		UserID: usrId,
+		Limit:  int32(maxResults),
+	}
+	resources, err := h.Repo.GetResourcesPostsByUser(ctx.Context(), args)
 	if err != nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error":   true,

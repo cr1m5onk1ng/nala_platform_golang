@@ -49,7 +49,8 @@ func (q *Queries) AddPost(ctx context.Context, arg AddPostParams) (UserPost, err
 }
 
 const getCommunitiesPosts = `-- name: GetCommunitiesPosts :many
-SELECT p.id, p.user_id, p.resource_id, p.post_time, p.post_title, p.post_description FROM user_post AS p
+SELECT p.id AS post_id, p.user_id, p.resource_id AS resource_id, r.language, r.difficulty, r.category, r.media_type
+FROM user_post AS p
 JOIN resources AS r
 ON p.resource_id = r.id
 JOIN learning AS l
@@ -59,25 +60,106 @@ AND p.language IN (
   SELECT language FROM learning AS ll
   WHERE ll.user_id = p.user_id
 ) 
-ORDER BY p.post_time DESC
+ORDER BY p.id DESC 
+LIMIT $2
 `
 
-func (q *Queries) GetCommunitiesPosts(ctx context.Context, userID string) ([]UserPost, error) {
-	rows, err := q.query(ctx, q.getCommunitiesPostsStmt, getCommunitiesPosts, userID)
+type GetCommunitiesPostsParams struct {
+	UserID string `json:"user_id"`
+	Limit  int32  `json:"limit"`
+}
+
+type GetCommunitiesPostsRow struct {
+	PostID     string `json:"post_id"`
+	UserID     string `json:"user_id"`
+	ResourceID int64  `json:"resource_id"`
+	Language   string `json:"language"`
+	Difficulty string `json:"difficulty"`
+	Category   string `json:"category"`
+	MediaType  string `json:"media_type"`
+}
+
+func (q *Queries) GetCommunitiesPosts(ctx context.Context, arg GetCommunitiesPostsParams) ([]GetCommunitiesPostsRow, error) {
+	rows, err := q.query(ctx, q.getCommunitiesPostsStmt, getCommunitiesPosts, arg.UserID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []UserPost{}
+	items := []GetCommunitiesPostsRow{}
 	for rows.Next() {
-		var i UserPost
+		var i GetCommunitiesPostsRow
 		if err := rows.Scan(
-			&i.ID,
+			&i.PostID,
 			&i.UserID,
 			&i.ResourceID,
-			&i.PostTime,
-			&i.PostTitle,
-			&i.PostDescription,
+			&i.Language,
+			&i.Difficulty,
+			&i.Category,
+			&i.MediaType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCommunitiesPostsByCursor = `-- name: GetCommunitiesPostsByCursor :many
+SELECT p.id AS post_id, p.user_id, p.resource_id AS resource_id, r.language, r.difficulty, r.category, r.media_type
+FROM user_post AS p
+JOIN resources AS r
+ON p.resource_id = r.id
+JOIN learning AS l
+ON p.user_id = l.user_id
+WHERE p.user_id = $1
+AND p.id < $2
+AND p.language IN (
+  SELECT language FROM learning AS ll
+  WHERE ll.user_id = p.user_id
+) 
+ORDER BY p.id DESC 
+LIMIT $3
+`
+
+type GetCommunitiesPostsByCursorParams struct {
+	Userid     string `json:"userid"`
+	Cursor     string `json:"cursor"`
+	Maxresults int32  `json:"maxresults"`
+}
+
+type GetCommunitiesPostsByCursorRow struct {
+	PostID     string `json:"post_id"`
+	UserID     string `json:"user_id"`
+	ResourceID int64  `json:"resource_id"`
+	Language   string `json:"language"`
+	Difficulty string `json:"difficulty"`
+	Category   string `json:"category"`
+	MediaType  string `json:"media_type"`
+}
+
+func (q *Queries) GetCommunitiesPostsByCursor(ctx context.Context, arg GetCommunitiesPostsByCursorParams) ([]GetCommunitiesPostsByCursorRow, error) {
+	rows, err := q.query(ctx, q.getCommunitiesPostsByCursorStmt, getCommunitiesPostsByCursor, arg.Userid, arg.Cursor, arg.Maxresults)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCommunitiesPostsByCursorRow{}
+	for rows.Next() {
+		var i GetCommunitiesPostsByCursorRow
+		if err := rows.Scan(
+			&i.PostID,
+			&i.UserID,
+			&i.ResourceID,
+			&i.Language,
+			&i.Difficulty,
+			&i.Category,
+			&i.MediaType,
 		); err != nil {
 			return nil, err
 		}
@@ -198,13 +280,14 @@ func (q *Queries) GetPostTags(ctx context.Context, postID string) ([]Tag, error)
 }
 
 const getPosts = `-- name: GetPosts :many
-SELECT p.id, p.user_id, p.resource_id, p.post_time, p.post_title, p.post_description FROM user_post AS p
+SELECT p.id AS post_id, p.user_id, p.resource_id AS resource_id, r.language, r.difficulty, r.category, r.media_type
+FROM user_post AS p
 JOIN resources AS r
 ON p.resource_id = r.id
-WHERE language = $1 
-AND category = $2
-AND media_type = $3
-LIMIT $4 OFFSET $5
+WHERE r.language = $1 
+AND r.category = $2
+AND r.media_type = $3
+ORDER BY p.id LIMIT $4
 `
 
 type GetPostsParams struct {
@@ -212,31 +295,40 @@ type GetPostsParams struct {
 	Category  string `json:"category"`
 	MediaType string `json:"media_type"`
 	Limit     int32  `json:"limit"`
-	Offset    int32  `json:"offset"`
 }
 
-func (q *Queries) GetPosts(ctx context.Context, arg GetPostsParams) ([]UserPost, error) {
+type GetPostsRow struct {
+	PostID     string `json:"post_id"`
+	UserID     string `json:"user_id"`
+	ResourceID int64  `json:"resource_id"`
+	Language   string `json:"language"`
+	Difficulty string `json:"difficulty"`
+	Category   string `json:"category"`
+	MediaType  string `json:"media_type"`
+}
+
+func (q *Queries) GetPosts(ctx context.Context, arg GetPostsParams) ([]GetPostsRow, error) {
 	rows, err := q.query(ctx, q.getPostsStmt, getPosts,
 		arg.Language,
 		arg.Category,
 		arg.MediaType,
 		arg.Limit,
-		arg.Offset,
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []UserPost{}
+	items := []GetPostsRow{}
 	for rows.Next() {
-		var i UserPost
+		var i GetPostsRow
 		if err := rows.Scan(
-			&i.ID,
+			&i.PostID,
 			&i.UserID,
 			&i.ResourceID,
-			&i.PostTime,
-			&i.PostTitle,
-			&i.PostDescription,
+			&i.Language,
+			&i.Difficulty,
+			&i.Category,
+			&i.MediaType,
 		); err != nil {
 			return nil, err
 		}
@@ -282,6 +374,74 @@ func (q *Queries) GetPostsByCategory(ctx context.Context, arg GetPostsByCategory
 			&i.PostTime,
 			&i.PostTitle,
 			&i.PostDescription,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPostsByCursor = `-- name: GetPostsByCursor :many
+SELECT p.id AS post_id, p.user_id, p.resource_id AS resource_id, r.language, r.difficulty, r.category, r.media_type
+FROM user_post AS p
+JOIN resources AS r
+ON p.resource_id = r.id
+WHERE p.id < $1
+AND r.language = $2 
+AND r.category = $3
+AND r.media_type = $4
+ORDER BY p.id 
+LIMIT $5
+`
+
+type GetPostsByCursorParams struct {
+	Cursor     string `json:"cursor"`
+	Language   string `json:"language"`
+	Category   string `json:"category"`
+	Mediatype  string `json:"mediatype"`
+	Maxresults int32  `json:"maxresults"`
+}
+
+type GetPostsByCursorRow struct {
+	PostID     string `json:"post_id"`
+	UserID     string `json:"user_id"`
+	ResourceID int64  `json:"resource_id"`
+	Language   string `json:"language"`
+	Difficulty string `json:"difficulty"`
+	Category   string `json:"category"`
+	MediaType  string `json:"media_type"`
+}
+
+func (q *Queries) GetPostsByCursor(ctx context.Context, arg GetPostsByCursorParams) ([]GetPostsByCursorRow, error) {
+	rows, err := q.query(ctx, q.getPostsByCursorStmt, getPostsByCursor,
+		arg.Cursor,
+		arg.Language,
+		arg.Category,
+		arg.Mediatype,
+		arg.Maxresults,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetPostsByCursorRow{}
+	for rows.Next() {
+		var i GetPostsByCursorRow
+		if err := rows.Scan(
+			&i.PostID,
+			&i.UserID,
+			&i.ResourceID,
+			&i.Language,
+			&i.Difficulty,
+			&i.Category,
+			&i.MediaType,
 		); err != nil {
 			return nil, err
 		}

@@ -1,14 +1,28 @@
 -- name: GetPosts :many
-SELECT p.* FROM user_post AS p
+SELECT p.id AS post_id, p.user_id, p.resource_id AS resource_id, r.language, r.difficulty, r.category, r.media_type
+FROM user_post AS p
 JOIN resources AS r
 ON p.resource_id = r.id
-WHERE language = $1 
-AND category = $2
-AND media_type = $3
-LIMIT $4 OFFSET $5;
+WHERE r.language = $1 
+AND r.category = $2
+AND r.media_type = $3
+ORDER BY p.id LIMIT $4;
+
+-- name: GetPostsByCursor :many
+SELECT p.id AS post_id, p.user_id, p.resource_id AS resource_id, r.language, r.difficulty, r.category, r.media_type
+FROM user_post AS p
+JOIN resources AS r
+ON p.resource_id = r.id
+WHERE p.id < sqlc.arg(cursor)
+AND r.language = sqlc.arg(language) 
+AND r.category = sqlc.arg(category)
+AND r.media_type = sqlc.arg(mediaType)
+ORDER BY p.id 
+LIMIT sqlc.arg(maxResults);
 
 -- name: GetCommunitiesPosts :many
-SELECT p.* FROM user_post AS p
+SELECT p.id AS post_id, p.user_id, p.resource_id AS resource_id, r.language, r.difficulty, r.category, r.media_type
+FROM user_post AS p
 JOIN resources AS r
 ON p.resource_id = r.id
 JOIN learning AS l
@@ -18,7 +32,24 @@ AND p.language IN (
   SELECT language FROM learning AS ll
   WHERE ll.user_id = p.user_id
 ) 
-ORDER BY p.post_time DESC;
+ORDER BY p.id DESC 
+LIMIT $2;
+
+-- name: GetCommunitiesPostsByCursor :many
+SELECT p.id AS post_id, p.user_id, p.resource_id AS resource_id, r.language, r.difficulty, r.category, r.media_type
+FROM user_post AS p
+JOIN resources AS r
+ON p.resource_id = r.id
+JOIN learning AS l
+ON p.user_id = l.user_id
+WHERE p.user_id = sqlc.arg(userId)
+AND p.id < sqlc.arg(cursor)
+AND p.language IN (
+  SELECT language FROM learning AS ll
+  WHERE ll.user_id = p.user_id
+) 
+ORDER BY p.id DESC 
+LIMIT sqlc.arg(maxResults);
 
 -- name: GetPostById :one
 SELECT * FROM user_post
@@ -136,3 +167,4 @@ WHERE user_id = $1 AND post_id = $2;
 -- name: GetVotes :many
 SELECT * FROM votes
 WHERE post_id = $1;
+

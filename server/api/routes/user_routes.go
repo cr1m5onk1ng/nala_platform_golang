@@ -14,9 +14,11 @@ func UserRoutes(app *fiber.App, handlers *controllers.Handlers) {
 	route.Get("/users/:id", middleware.PasetoProtected(handlers.TokenManager), handlers.GetUser)
 
 	// Routes for POST method:
-	route.Post("/users", handlers.CreateUser)
+	route.Post("/users/register", handlers.CreateUser)
 
 	route.Post("/users/login", handlers.LoginUser)
+
+	route.Post("/users/logout", handlers.LogoutUser)
 
 	route.Post("/users/targetlang", middleware.PasetoProtected(handlers.TokenManager), handlers.AddUserTargetLanguage)
 

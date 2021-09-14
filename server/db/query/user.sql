@@ -57,3 +57,21 @@ WHERE id = $1;
 -- name: GetUserTargetLanguages :many
 SELECT * FROM learning
 WHERE user_id = $1;
+
+-- name: AddToken :one
+INSERT INTO tokens (
+    token,
+    expired_at
+) VALUES (
+    $1, $2
+) RETURNING *;
+
+-- name: InvalidateToken :exec
+DELETE FROM tokens 
+WHERE token = $1;
+
+-- name: UpdateUserToken :one
+UPDATE users
+SET access_token = $2
+WHERE email = $1
+RETURNING *;

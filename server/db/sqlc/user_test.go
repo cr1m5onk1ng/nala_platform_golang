@@ -46,7 +46,7 @@ func TestGetUser(t *testing.T) {
 	require.Equal(t, user1.Username, user2.Username)
 	require.Equal(t, user1.NativeLanguage, user2.NativeLanguage)
 	require.Equal(t, user1.Role, user2.Role)
-	require.WithinDuration(t, user1.RegistrationDate, user2.RegistrationDate, time.Second)
+	require.WithinDuration(t, user1.RegisteredAt, user2.RegisteredAt, time.Second)
 }
 
 func TestDeleteUser(t *testing.T) {

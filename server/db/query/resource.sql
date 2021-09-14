@@ -21,12 +21,20 @@ LIMIT 1;
 -- name: GetResourcesByLanguage :many
 SELECT * FROM resources
 WHERE language = $1
-ORDER BY inserted_at DESC;
+ORDER BY id DESC LIMIT $2;
+
+-- name: GetResourcesByLanguageByCursor :many
+SELECT * FROM resources
+WHERE language = sqlc.arg(language)
+AND id < sqlc.arg(cursor)
+ORDER BY id DESC LIMIT sqlc.arg(maxResults);
 
 -- name: GetResourcesPostsByUser :many
-SELECT * FROM user_post
-WHERE user_id = $1
-ORDER BY post_time DESC;
+SELECT r.* FROM resources AS r
+JOIN user_post AS p
+ON r.id = p.resource_id
+WHERE p.user_id = $1
+ORDER BY id DESC LIMIT $2;
 
 -- name: GetResourcePost :one
 SELECT * FROM user_post

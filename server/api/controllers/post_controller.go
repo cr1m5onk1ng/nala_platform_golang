@@ -16,6 +16,16 @@ import (
 
 // UTILITY FUNCTIONS
 
+type PostResponse struct {
+	PostID     string `json:"post_id"`
+	UserID     string `json:"user_id"`
+	ResourceID int64  `json:"resource_id"`
+	Language   string `json:"language"`
+	Difficulty string `json:"difficulty"`
+	Category   string `json:"category"`
+	MediaType  string `json:"media_type"`
+}
+
 func parsePostData(ctx *fiber.Ctx) (*domain.MappedUserPost, error) {
 	postData, err := validation.ValidatePostData(ctx, &domain.MappedUserPost{})
 	if err != nil {
@@ -38,30 +48,57 @@ func (h *Handlers) GetPosts(ctx *fiber.Ctx) error {
 	mediaType := ctx.Query("media")
 	category := ctx.Query("cat")
 	language := ctx.Query("lang")
+	cursor := ctx.Query("cursor")
 	maxResults, err := strconv.ParseInt(ctx.Query("max"), 10, 32)
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
-	offset, err := strconv.ParseInt(ctx.Query("offset"), 10, 32)
+
+	fmt.Printf("Media: %s; category: %s; language %s; max: %d\n",
+		mediaType, category, language, maxResults,
+	)
+
+	if cursor == "" {
+		args := db.GetPostsParams{
+			Language:  language,
+			Category:  category,
+			MediaType: mediaType,
+			Limit:     int32(maxResults),
+		}
+		posts, err := h.Repo.GetPosts(ctx.Context(), args)
+		if err != nil {
+			SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
+		}
+		return SendSuccessResponse(ctx, fiber.StatusOK, posts)
+	} else {
+		args := db.GetPostsByCursorParams{
+			Cursor:     cursor,
+			Language:   language,
+			Category:   category,
+			Mediatype:  mediaType,
+			Maxresults: int32(maxResults),
+		}
+		posts, err := h.Repo.GetPostsByCursor(ctx.Context(), args)
+		if err != nil {
+			SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
+		}
+		return SendSuccessResponse(ctx, fiber.StatusOK, posts)
+	}
+}
+
+func (h *Handlers) GetPostsByCommunities(ctx *fiber.Ctx) error {
+	userId := ctx.Params("user")
+	maxResults, err := strconv.ParseInt(ctx.Query("max"), 10, 32)
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
-
-	fmt.Printf("Media: %s; category: %s; language %s; max: %d; offset: %d\n",
-		mediaType, category, language, maxResults, offset,
-	)
-
-	args := db.GetPostsParams{
-		Language:  language,
-		Category:  category,
-		MediaType: mediaType,
-		Limit:     int32(maxResults),
-		Offset:    int32(offset),
+	args := db.GetCommunitiesPostsParams{
+		UserID: userId,
+		Limit:  int32(maxResults),
 	}
-
-	posts, err := h.Repo.GetPosts(ctx.Context(), args)
+	posts, err := h.Repo.GetCommunitiesPosts(ctx.Context(), args)
 	if err != nil {
-		SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
+		return SendFailureResponse(ctx, fiber.StatusNotFound, err.Error())
 	}
 	return SendSuccessResponse(ctx, fiber.StatusOK, posts)
 }

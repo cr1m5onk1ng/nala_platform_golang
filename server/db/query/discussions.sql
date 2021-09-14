@@ -1,12 +1,24 @@
 -- name: GetPostDiscussions :many
 SELECT * FROM post_discussions
-WHERE post_id = $1
-ORDER BY creation_time DESC;
+WHERE post_id = sqlc.arg(postId)
+ORDER BY id DESC LIMIT sqlc.arg(maxResults);
+
+-- name: GetPostDiscussionsByCursor :many
+SELECT * FROM post_discussions
+WHERE post_id = sqlc.arg(postId)
+AND id < sqlc.arg(cursor)
+ORDER BY id DESC LIMIT sqlc.arg(maxResults);
 
 -- name: GetPostDiscussionsByUser :many
 SELECT * FROM post_discussions
-WHERE creator_id = $1
-ORDER BY creation_time DESC;
+WHERE creator_id = sqlc.arg(creatorId)
+ORDER BY id DESC LIMIT sqlc.arg(maxResults);
+
+-- name: GetPostDiscussionsByUserByCursor :many
+SELECT * FROM post_discussions
+WHERE creator_id = sqlc.arg(creatorId)
+AND id < slqc.arg(cursor)
+ORDER BY id DESC LIMIT sqlc.arg(maxResults);
 
 -- name: GetPostDiscussionById :one
 SELECT * FROM post_discussions

@@ -40,6 +40,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.addStudyListStmt, err = db.PrepareContext(ctx, addStudyList); err != nil {
 		return nil, fmt.Errorf("error preparing query AddStudyList: %w", err)
 	}
+	if q.addTokenStmt, err = db.PrepareContext(ctx, addToken); err != nil {
+		return nil, fmt.Errorf("error preparing query AddToken: %w", err)
+	}
 	if q.addUserTargetLanguageStmt, err = db.PrepareContext(ctx, addUserTargetLanguage); err != nil {
 		return nil, fmt.Errorf("error preparing query AddUserTargetLanguage: %w", err)
 	}
@@ -48,6 +51,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getAllDiscussionCommentsStmt, err = db.PrepareContext(ctx, getAllDiscussionComments); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAllDiscussionComments: %w", err)
+	}
+	if q.getAllDiscussionCommentsByCursorStmt, err = db.PrepareContext(ctx, getAllDiscussionCommentsByCursor); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAllDiscussionCommentsByCursor: %w", err)
 	}
 	if q.getAllUserCommentsStmt, err = db.PrepareContext(ctx, getAllUserComments); err != nil {
 		return nil, fmt.Errorf("error preparing query GetAllUserComments: %w", err)
@@ -70,6 +76,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getCommunitiesPostsStmt, err = db.PrepareContext(ctx, getCommunitiesPosts); err != nil {
 		return nil, fmt.Errorf("error preparing query GetCommunitiesPosts: %w", err)
 	}
+	if q.getCommunitiesPostsByCursorStmt, err = db.PrepareContext(ctx, getCommunitiesPostsByCursor); err != nil {
+		return nil, fmt.Errorf("error preparing query GetCommunitiesPostsByCursor: %w", err)
+	}
 	if q.getDiscussionCommentByIdStmt, err = db.PrepareContext(ctx, getDiscussionCommentById); err != nil {
 		return nil, fmt.Errorf("error preparing query GetDiscussionCommentById: %w", err)
 	}
@@ -85,8 +94,14 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getPostDiscussionsStmt, err = db.PrepareContext(ctx, getPostDiscussions); err != nil {
 		return nil, fmt.Errorf("error preparing query GetPostDiscussions: %w", err)
 	}
+	if q.getPostDiscussionsByCursorStmt, err = db.PrepareContext(ctx, getPostDiscussionsByCursor); err != nil {
+		return nil, fmt.Errorf("error preparing query GetPostDiscussionsByCursor: %w", err)
+	}
 	if q.getPostDiscussionsByUserStmt, err = db.PrepareContext(ctx, getPostDiscussionsByUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetPostDiscussionsByUser: %w", err)
+	}
+	if q.getPostDiscussionsByUserByCursorStmt, err = db.PrepareContext(ctx, getPostDiscussionsByUserByCursor); err != nil {
+		return nil, fmt.Errorf("error preparing query GetPostDiscussionsByUserByCursor: %w", err)
 	}
 	if q.getPostLikesStmt, err = db.PrepareContext(ctx, getPostLikes); err != nil {
 		return nil, fmt.Errorf("error preparing query GetPostLikes: %w", err)
@@ -99,6 +114,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getPostsByCategoryStmt, err = db.PrepareContext(ctx, getPostsByCategory); err != nil {
 		return nil, fmt.Errorf("error preparing query GetPostsByCategory: %w", err)
+	}
+	if q.getPostsByCursorStmt, err = db.PrepareContext(ctx, getPostsByCursor); err != nil {
+		return nil, fmt.Errorf("error preparing query GetPostsByCursor: %w", err)
 	}
 	if q.getPostsByDifficultyStmt, err = db.PrepareContext(ctx, getPostsByDifficulty); err != nil {
 		return nil, fmt.Errorf("error preparing query GetPostsByDifficulty: %w", err)
@@ -126,6 +144,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getResourcesByLanguageStmt, err = db.PrepareContext(ctx, getResourcesByLanguage); err != nil {
 		return nil, fmt.Errorf("error preparing query GetResourcesByLanguage: %w", err)
+	}
+	if q.getResourcesByLanguageByCursorStmt, err = db.PrepareContext(ctx, getResourcesByLanguageByCursor); err != nil {
+		return nil, fmt.Errorf("error preparing query GetResourcesByLanguageByCursor: %w", err)
 	}
 	if q.getResourcesPostsByUserStmt, err = db.PrepareContext(ctx, getResourcesPostsByUser); err != nil {
 		return nil, fmt.Errorf("error preparing query GetResourcesPostsByUser: %w", err)
@@ -159,6 +180,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getVotesStmt, err = db.PrepareContext(ctx, getVotes); err != nil {
 		return nil, fmt.Errorf("error preparing query GetVotes: %w", err)
+	}
+	if q.invalidateTokenStmt, err = db.PrepareContext(ctx, invalidateToken); err != nil {
+		return nil, fmt.Errorf("error preparing query InvalidateToken: %w", err)
 	}
 	if q.likeCommentStmt, err = db.PrepareContext(ctx, likeComment); err != nil {
 		return nil, fmt.Errorf("error preparing query LikeComment: %w", err)
@@ -223,6 +247,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.updateUserRoleStmt, err = db.PrepareContext(ctx, updateUserRole); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateUserRole: %w", err)
 	}
+	if q.updateUserTokenStmt, err = db.PrepareContext(ctx, updateUserToken); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateUserToken: %w", err)
+	}
 	if q.updateVoteStmt, err = db.PrepareContext(ctx, updateVote); err != nil {
 		return nil, fmt.Errorf("error preparing query UpdateVote: %w", err)
 	}
@@ -264,6 +291,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing addStudyListStmt: %w", cerr)
 		}
 	}
+	if q.addTokenStmt != nil {
+		if cerr := q.addTokenStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing addTokenStmt: %w", cerr)
+		}
+	}
 	if q.addUserTargetLanguageStmt != nil {
 		if cerr := q.addUserTargetLanguageStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing addUserTargetLanguageStmt: %w", cerr)
@@ -277,6 +309,11 @@ func (q *Queries) Close() error {
 	if q.getAllDiscussionCommentsStmt != nil {
 		if cerr := q.getAllDiscussionCommentsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getAllDiscussionCommentsStmt: %w", cerr)
+		}
+	}
+	if q.getAllDiscussionCommentsByCursorStmt != nil {
+		if cerr := q.getAllDiscussionCommentsByCursorStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAllDiscussionCommentsByCursorStmt: %w", cerr)
 		}
 	}
 	if q.getAllUserCommentsStmt != nil {
@@ -314,6 +351,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getCommunitiesPostsStmt: %w", cerr)
 		}
 	}
+	if q.getCommunitiesPostsByCursorStmt != nil {
+		if cerr := q.getCommunitiesPostsByCursorStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getCommunitiesPostsByCursorStmt: %w", cerr)
+		}
+	}
 	if q.getDiscussionCommentByIdStmt != nil {
 		if cerr := q.getDiscussionCommentByIdStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getDiscussionCommentByIdStmt: %w", cerr)
@@ -339,9 +381,19 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing getPostDiscussionsStmt: %w", cerr)
 		}
 	}
+	if q.getPostDiscussionsByCursorStmt != nil {
+		if cerr := q.getPostDiscussionsByCursorStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getPostDiscussionsByCursorStmt: %w", cerr)
+		}
+	}
 	if q.getPostDiscussionsByUserStmt != nil {
 		if cerr := q.getPostDiscussionsByUserStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getPostDiscussionsByUserStmt: %w", cerr)
+		}
+	}
+	if q.getPostDiscussionsByUserByCursorStmt != nil {
+		if cerr := q.getPostDiscussionsByUserByCursorStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getPostDiscussionsByUserByCursorStmt: %w", cerr)
 		}
 	}
 	if q.getPostLikesStmt != nil {
@@ -362,6 +414,11 @@ func (q *Queries) Close() error {
 	if q.getPostsByCategoryStmt != nil {
 		if cerr := q.getPostsByCategoryStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getPostsByCategoryStmt: %w", cerr)
+		}
+	}
+	if q.getPostsByCursorStmt != nil {
+		if cerr := q.getPostsByCursorStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getPostsByCursorStmt: %w", cerr)
 		}
 	}
 	if q.getPostsByDifficultyStmt != nil {
@@ -407,6 +464,11 @@ func (q *Queries) Close() error {
 	if q.getResourcesByLanguageStmt != nil {
 		if cerr := q.getResourcesByLanguageStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getResourcesByLanguageStmt: %w", cerr)
+		}
+	}
+	if q.getResourcesByLanguageByCursorStmt != nil {
+		if cerr := q.getResourcesByLanguageByCursorStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getResourcesByLanguageByCursorStmt: %w", cerr)
 		}
 	}
 	if q.getResourcesPostsByUserStmt != nil {
@@ -462,6 +524,11 @@ func (q *Queries) Close() error {
 	if q.getVotesStmt != nil {
 		if cerr := q.getVotesStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getVotesStmt: %w", cerr)
+		}
+	}
+	if q.invalidateTokenStmt != nil {
+		if cerr := q.invalidateTokenStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing invalidateTokenStmt: %w", cerr)
 		}
 	}
 	if q.likeCommentStmt != nil {
@@ -569,6 +636,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing updateUserRoleStmt: %w", cerr)
 		}
 	}
+	if q.updateUserTokenStmt != nil {
+		if cerr := q.updateUserTokenStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateUserTokenStmt: %w", cerr)
+		}
+	}
 	if q.updateVoteStmt != nil {
 		if cerr := q.updateVoteStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing updateVoteStmt: %w", cerr)
@@ -616,151 +688,169 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                                 DBTX
-	tx                                 *sql.Tx
-	addCommentStmt                     *sql.Stmt
-	addPostStmt                        *sql.Stmt
-	addPostDiscussionStmt              *sql.Stmt
-	addResourceStmt                    *sql.Stmt
-	addResourceToStudyListStmt         *sql.Stmt
-	addStudyListStmt                   *sql.Stmt
-	addUserTargetLanguageStmt          *sql.Stmt
-	createUserStmt                     *sql.Stmt
-	getAllDiscussionCommentsStmt       *sql.Stmt
-	getAllUserCommentsStmt             *sql.Stmt
-	getAllUserPostCommentsStmt         *sql.Stmt
-	getAllUsersStmt                    *sql.Stmt
-	getCommentDirectResponsesStmt      *sql.Stmt
-	getCommentLikesStmt                *sql.Stmt
-	getCommentLikesCountStmt           *sql.Stmt
-	getCommunitiesPostsStmt            *sql.Stmt
-	getDiscussionCommentByIdStmt       *sql.Stmt
-	getPostByIdStmt                    *sql.Stmt
-	getPostDifficultyVotesStmt         *sql.Stmt
-	getPostDiscussionByIdStmt          *sql.Stmt
-	getPostDiscussionsStmt             *sql.Stmt
-	getPostDiscussionsByUserStmt       *sql.Stmt
-	getPostLikesStmt                   *sql.Stmt
-	getPostTagsStmt                    *sql.Stmt
-	getPostsStmt                       *sql.Stmt
-	getPostsByCategoryStmt             *sql.Stmt
-	getPostsByDifficultyStmt           *sql.Stmt
-	getPostsByLanguageStmt             *sql.Stmt
-	getPostsByMediaTypeStmt            *sql.Stmt
-	getPostsByTopicStmt                *sql.Stmt
-	getPostsByUserStmt                 *sql.Stmt
-	getResourceByIdStmt                *sql.Stmt
-	getResourceByUrlStmt               *sql.Stmt
-	getResourcePostStmt                *sql.Stmt
-	getResourcesByLanguageStmt         *sql.Stmt
-	getResourcesPostsByUserStmt        *sql.Stmt
-	getStudyListStmt                   *sql.Stmt
-	getStudyListResourcesStmt          *sql.Stmt
-	getUserStmt                        *sql.Stmt
-	getUserByEmailStmt                 *sql.Stmt
-	getUserFollowersStmt               *sql.Stmt
-	getUserSavedResourcesStmt          *sql.Stmt
-	getUserStudyListsStmt              *sql.Stmt
-	getUserTargetLanguagesStmt         *sql.Stmt
-	getVoteStmt                        *sql.Stmt
-	getVotesStmt                       *sql.Stmt
-	likeCommentStmt                    *sql.Stmt
-	removeAllUserStudyListsStmt        *sql.Stmt
-	removeCommentStmt                  *sql.Stmt
-	removeDiscussionCommentsStmt       *sql.Stmt
-	removePostStmt                     *sql.Stmt
-	removePostDiscussionStmt           *sql.Stmt
-	removePostDiscussionsByCreatorStmt *sql.Stmt
-	removeResourceFromStudyListStmt    *sql.Stmt
-	removeStudyListStmt                *sql.Stmt
-	removeUserStmt                     *sql.Stmt
-	removeUserCommentsStmt             *sql.Stmt
-	removeUserPostsStmt                *sql.Stmt
-	removeVoteStmt                     *sql.Stmt
-	unlikeCommentStmt                  *sql.Stmt
-	updateCommentStmt                  *sql.Stmt
-	updatePostStmt                     *sql.Stmt
-	updatePostDiscussionStmt           *sql.Stmt
-	updateResourceStmt                 *sql.Stmt
-	updateStudyListStmt                *sql.Stmt
-	updateUserLanguageStmt             *sql.Stmt
-	updateUserRoleStmt                 *sql.Stmt
-	updateVoteStmt                     *sql.Stmt
-	votePostStmt                       *sql.Stmt
+	db                                   DBTX
+	tx                                   *sql.Tx
+	addCommentStmt                       *sql.Stmt
+	addPostStmt                          *sql.Stmt
+	addPostDiscussionStmt                *sql.Stmt
+	addResourceStmt                      *sql.Stmt
+	addResourceToStudyListStmt           *sql.Stmt
+	addStudyListStmt                     *sql.Stmt
+	addTokenStmt                         *sql.Stmt
+	addUserTargetLanguageStmt            *sql.Stmt
+	createUserStmt                       *sql.Stmt
+	getAllDiscussionCommentsStmt         *sql.Stmt
+	getAllDiscussionCommentsByCursorStmt *sql.Stmt
+	getAllUserCommentsStmt               *sql.Stmt
+	getAllUserPostCommentsStmt           *sql.Stmt
+	getAllUsersStmt                      *sql.Stmt
+	getCommentDirectResponsesStmt        *sql.Stmt
+	getCommentLikesStmt                  *sql.Stmt
+	getCommentLikesCountStmt             *sql.Stmt
+	getCommunitiesPostsStmt              *sql.Stmt
+	getCommunitiesPostsByCursorStmt      *sql.Stmt
+	getDiscussionCommentByIdStmt         *sql.Stmt
+	getPostByIdStmt                      *sql.Stmt
+	getPostDifficultyVotesStmt           *sql.Stmt
+	getPostDiscussionByIdStmt            *sql.Stmt
+	getPostDiscussionsStmt               *sql.Stmt
+	getPostDiscussionsByCursorStmt       *sql.Stmt
+	getPostDiscussionsByUserStmt         *sql.Stmt
+	getPostDiscussionsByUserByCursorStmt *sql.Stmt
+	getPostLikesStmt                     *sql.Stmt
+	getPostTagsStmt                      *sql.Stmt
+	getPostsStmt                         *sql.Stmt
+	getPostsByCategoryStmt               *sql.Stmt
+	getPostsByCursorStmt                 *sql.Stmt
+	getPostsByDifficultyStmt             *sql.Stmt
+	getPostsByLanguageStmt               *sql.Stmt
+	getPostsByMediaTypeStmt              *sql.Stmt
+	getPostsByTopicStmt                  *sql.Stmt
+	getPostsByUserStmt                   *sql.Stmt
+	getResourceByIdStmt                  *sql.Stmt
+	getResourceByUrlStmt                 *sql.Stmt
+	getResourcePostStmt                  *sql.Stmt
+	getResourcesByLanguageStmt           *sql.Stmt
+	getResourcesByLanguageByCursorStmt   *sql.Stmt
+	getResourcesPostsByUserStmt          *sql.Stmt
+	getStudyListStmt                     *sql.Stmt
+	getStudyListResourcesStmt            *sql.Stmt
+	getUserStmt                          *sql.Stmt
+	getUserByEmailStmt                   *sql.Stmt
+	getUserFollowersStmt                 *sql.Stmt
+	getUserSavedResourcesStmt            *sql.Stmt
+	getUserStudyListsStmt                *sql.Stmt
+	getUserTargetLanguagesStmt           *sql.Stmt
+	getVoteStmt                          *sql.Stmt
+	getVotesStmt                         *sql.Stmt
+	invalidateTokenStmt                  *sql.Stmt
+	likeCommentStmt                      *sql.Stmt
+	removeAllUserStudyListsStmt          *sql.Stmt
+	removeCommentStmt                    *sql.Stmt
+	removeDiscussionCommentsStmt         *sql.Stmt
+	removePostStmt                       *sql.Stmt
+	removePostDiscussionStmt             *sql.Stmt
+	removePostDiscussionsByCreatorStmt   *sql.Stmt
+	removeResourceFromStudyListStmt      *sql.Stmt
+	removeStudyListStmt                  *sql.Stmt
+	removeUserStmt                       *sql.Stmt
+	removeUserCommentsStmt               *sql.Stmt
+	removeUserPostsStmt                  *sql.Stmt
+	removeVoteStmt                       *sql.Stmt
+	unlikeCommentStmt                    *sql.Stmt
+	updateCommentStmt                    *sql.Stmt
+	updatePostStmt                       *sql.Stmt
+	updatePostDiscussionStmt             *sql.Stmt
+	updateResourceStmt                   *sql.Stmt
+	updateStudyListStmt                  *sql.Stmt
+	updateUserLanguageStmt               *sql.Stmt
+	updateUserRoleStmt                   *sql.Stmt
+	updateUserTokenStmt                  *sql.Stmt
+	updateVoteStmt                       *sql.Stmt
+	votePostStmt                         *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                                 tx,
-		tx:                                 tx,
-		addCommentStmt:                     q.addCommentStmt,
-		addPostStmt:                        q.addPostStmt,
-		addPostDiscussionStmt:              q.addPostDiscussionStmt,
-		addResourceStmt:                    q.addResourceStmt,
-		addResourceToStudyListStmt:         q.addResourceToStudyListStmt,
-		addStudyListStmt:                   q.addStudyListStmt,
-		addUserTargetLanguageStmt:          q.addUserTargetLanguageStmt,
-		createUserStmt:                     q.createUserStmt,
-		getAllDiscussionCommentsStmt:       q.getAllDiscussionCommentsStmt,
-		getAllUserCommentsStmt:             q.getAllUserCommentsStmt,
-		getAllUserPostCommentsStmt:         q.getAllUserPostCommentsStmt,
-		getAllUsersStmt:                    q.getAllUsersStmt,
-		getCommentDirectResponsesStmt:      q.getCommentDirectResponsesStmt,
-		getCommentLikesStmt:                q.getCommentLikesStmt,
-		getCommentLikesCountStmt:           q.getCommentLikesCountStmt,
-		getCommunitiesPostsStmt:            q.getCommunitiesPostsStmt,
-		getDiscussionCommentByIdStmt:       q.getDiscussionCommentByIdStmt,
-		getPostByIdStmt:                    q.getPostByIdStmt,
-		getPostDifficultyVotesStmt:         q.getPostDifficultyVotesStmt,
-		getPostDiscussionByIdStmt:          q.getPostDiscussionByIdStmt,
-		getPostDiscussionsStmt:             q.getPostDiscussionsStmt,
-		getPostDiscussionsByUserStmt:       q.getPostDiscussionsByUserStmt,
-		getPostLikesStmt:                   q.getPostLikesStmt,
-		getPostTagsStmt:                    q.getPostTagsStmt,
-		getPostsStmt:                       q.getPostsStmt,
-		getPostsByCategoryStmt:             q.getPostsByCategoryStmt,
-		getPostsByDifficultyStmt:           q.getPostsByDifficultyStmt,
-		getPostsByLanguageStmt:             q.getPostsByLanguageStmt,
-		getPostsByMediaTypeStmt:            q.getPostsByMediaTypeStmt,
-		getPostsByTopicStmt:                q.getPostsByTopicStmt,
-		getPostsByUserStmt:                 q.getPostsByUserStmt,
-		getResourceByIdStmt:                q.getResourceByIdStmt,
-		getResourceByUrlStmt:               q.getResourceByUrlStmt,
-		getResourcePostStmt:                q.getResourcePostStmt,
-		getResourcesByLanguageStmt:         q.getResourcesByLanguageStmt,
-		getResourcesPostsByUserStmt:        q.getResourcesPostsByUserStmt,
-		getStudyListStmt:                   q.getStudyListStmt,
-		getStudyListResourcesStmt:          q.getStudyListResourcesStmt,
-		getUserStmt:                        q.getUserStmt,
-		getUserByEmailStmt:                 q.getUserByEmailStmt,
-		getUserFollowersStmt:               q.getUserFollowersStmt,
-		getUserSavedResourcesStmt:          q.getUserSavedResourcesStmt,
-		getUserStudyListsStmt:              q.getUserStudyListsStmt,
-		getUserTargetLanguagesStmt:         q.getUserTargetLanguagesStmt,
-		getVoteStmt:                        q.getVoteStmt,
-		getVotesStmt:                       q.getVotesStmt,
-		likeCommentStmt:                    q.likeCommentStmt,
-		removeAllUserStudyListsStmt:        q.removeAllUserStudyListsStmt,
-		removeCommentStmt:                  q.removeCommentStmt,
-		removeDiscussionCommentsStmt:       q.removeDiscussionCommentsStmt,
-		removePostStmt:                     q.removePostStmt,
-		removePostDiscussionStmt:           q.removePostDiscussionStmt,
-		removePostDiscussionsByCreatorStmt: q.removePostDiscussionsByCreatorStmt,
-		removeResourceFromStudyListStmt:    q.removeResourceFromStudyListStmt,
-		removeStudyListStmt:                q.removeStudyListStmt,
-		removeUserStmt:                     q.removeUserStmt,
-		removeUserCommentsStmt:             q.removeUserCommentsStmt,
-		removeUserPostsStmt:                q.removeUserPostsStmt,
-		removeVoteStmt:                     q.removeVoteStmt,
-		unlikeCommentStmt:                  q.unlikeCommentStmt,
-		updateCommentStmt:                  q.updateCommentStmt,
-		updatePostStmt:                     q.updatePostStmt,
-		updatePostDiscussionStmt:           q.updatePostDiscussionStmt,
-		updateResourceStmt:                 q.updateResourceStmt,
-		updateStudyListStmt:                q.updateStudyListStmt,
-		updateUserLanguageStmt:             q.updateUserLanguageStmt,
-		updateUserRoleStmt:                 q.updateUserRoleStmt,
-		updateVoteStmt:                     q.updateVoteStmt,
-		votePostStmt:                       q.votePostStmt,
+		db:                                   tx,
+		tx:                                   tx,
+		addCommentStmt:                       q.addCommentStmt,
+		addPostStmt:                          q.addPostStmt,
+		addPostDiscussionStmt:                q.addPostDiscussionStmt,
+		addResourceStmt:                      q.addResourceStmt,
+		addResourceToStudyListStmt:           q.addResourceToStudyListStmt,
+		addStudyListStmt:                     q.addStudyListStmt,
+		addTokenStmt:                         q.addTokenStmt,
+		addUserTargetLanguageStmt:            q.addUserTargetLanguageStmt,
+		createUserStmt:                       q.createUserStmt,
+		getAllDiscussionCommentsStmt:         q.getAllDiscussionCommentsStmt,
+		getAllDiscussionCommentsByCursorStmt: q.getAllDiscussionCommentsByCursorStmt,
+		getAllUserCommentsStmt:               q.getAllUserCommentsStmt,
+		getAllUserPostCommentsStmt:           q.getAllUserPostCommentsStmt,
+		getAllUsersStmt:                      q.getAllUsersStmt,
+		getCommentDirectResponsesStmt:        q.getCommentDirectResponsesStmt,
+		getCommentLikesStmt:                  q.getCommentLikesStmt,
+		getCommentLikesCountStmt:             q.getCommentLikesCountStmt,
+		getCommunitiesPostsStmt:              q.getCommunitiesPostsStmt,
+		getCommunitiesPostsByCursorStmt:      q.getCommunitiesPostsByCursorStmt,
+		getDiscussionCommentByIdStmt:         q.getDiscussionCommentByIdStmt,
+		getPostByIdStmt:                      q.getPostByIdStmt,
+		getPostDifficultyVotesStmt:           q.getPostDifficultyVotesStmt,
+		getPostDiscussionByIdStmt:            q.getPostDiscussionByIdStmt,
+		getPostDiscussionsStmt:               q.getPostDiscussionsStmt,
+		getPostDiscussionsByCursorStmt:       q.getPostDiscussionsByCursorStmt,
+		getPostDiscussionsByUserStmt:         q.getPostDiscussionsByUserStmt,
+		getPostDiscussionsByUserByCursorStmt: q.getPostDiscussionsByUserByCursorStmt,
+		getPostLikesStmt:                     q.getPostLikesStmt,
+		getPostTagsStmt:                      q.getPostTagsStmt,
+		getPostsStmt:                         q.getPostsStmt,
+		getPostsByCategoryStmt:               q.getPostsByCategoryStmt,
+		getPostsByCursorStmt:                 q.getPostsByCursorStmt,
+		getPostsByDifficultyStmt:             q.getPostsByDifficultyStmt,
+		getPostsByLanguageStmt:               q.getPostsByLanguageStmt,
+		getPostsByMediaTypeStmt:              q.getPostsByMediaTypeStmt,
+		getPostsByTopicStmt:                  q.getPostsByTopicStmt,
+		getPostsByUserStmt:                   q.getPostsByUserStmt,
+		getResourceByIdStmt:                  q.getResourceByIdStmt,
+		getResourceByUrlStmt:                 q.getResourceByUrlStmt,
+		getResourcePostStmt:                  q.getResourcePostStmt,
+		getResourcesByLanguageStmt:           q.getResourcesByLanguageStmt,
+		getResourcesByLanguageByCursorStmt:   q.getResourcesByLanguageByCursorStmt,
+		getResourcesPostsByUserStmt:          q.getResourcesPostsByUserStmt,
+		getStudyListStmt:                     q.getStudyListStmt,
+		getStudyListResourcesStmt:            q.getStudyListResourcesStmt,
+		getUserStmt:                          q.getUserStmt,
+		getUserByEmailStmt:                   q.getUserByEmailStmt,
+		getUserFollowersStmt:                 q.getUserFollowersStmt,
+		getUserSavedResourcesStmt:            q.getUserSavedResourcesStmt,
+		getUserStudyListsStmt:                q.getUserStudyListsStmt,
+		getUserTargetLanguagesStmt:           q.getUserTargetLanguagesStmt,
+		getVoteStmt:                          q.getVoteStmt,
+		getVotesStmt:                         q.getVotesStmt,
+		invalidateTokenStmt:                  q.invalidateTokenStmt,
+		likeCommentStmt:                      q.likeCommentStmt,
+		removeAllUserStudyListsStmt:          q.removeAllUserStudyListsStmt,
+		removeCommentStmt:                    q.removeCommentStmt,
+		removeDiscussionCommentsStmt:         q.removeDiscussionCommentsStmt,
+		removePostStmt:                       q.removePostStmt,
+		removePostDiscussionStmt:             q.removePostDiscussionStmt,
+		removePostDiscussionsByCreatorStmt:   q.removePostDiscussionsByCreatorStmt,
+		removeResourceFromStudyListStmt:      q.removeResourceFromStudyListStmt,
+		removeStudyListStmt:                  q.removeStudyListStmt,
+		removeUserStmt:                       q.removeUserStmt,
+		removeUserCommentsStmt:               q.removeUserCommentsStmt,
+		removeUserPostsStmt:                  q.removeUserPostsStmt,
+		removeVoteStmt:                       q.removeVoteStmt,
+		unlikeCommentStmt:                    q.unlikeCommentStmt,
+		updateCommentStmt:                    q.updateCommentStmt,
+		updatePostStmt:                       q.updatePostStmt,
+		updatePostDiscussionStmt:             q.updatePostDiscussionStmt,
+		updateResourceStmt:                   q.updateResourceStmt,
+		updateStudyListStmt:                  q.updateStudyListStmt,
+		updateUserLanguageStmt:               q.updateUserLanguageStmt,
+		updateUserRoleStmt:                   q.updateUserRoleStmt,
+		updateUserTokenStmt:                  q.updateUserTokenStmt,
+		updateVoteStmt:                       q.updateVoteStmt,
+		votePostStmt:                         q.votePostStmt,
 	}
 }

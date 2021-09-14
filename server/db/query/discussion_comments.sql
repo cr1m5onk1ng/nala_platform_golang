@@ -4,7 +4,14 @@ WHERE id = $1;
 
 -- name: GetAllDiscussionComments :many
 SELECT * FROM discussion_comments
-WHERE discussion_id = $1;
+WHERE discussion_id = $1
+ORDER BY id DESC LIMIT $2;
+
+-- name: GetAllDiscussionCommentsByCursor :many
+SELECT * FROM discussion_comments
+WHERE discussion_id = sqlc.arg(discussionId)
+AND id < sqlc.arg(cursor)
+ORDER BY id DESC LIMIT sqlc.arg(maxResults);
 
 -- name: GetAllUserPostComments :many
 SELECT * FROM discussion_comments

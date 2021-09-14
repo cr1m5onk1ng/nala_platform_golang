@@ -36,4 +36,4 @@ test:
 server:
 	go run main.go
 
-.PHONY: postgres postgres_cleanup createdb dopdb migrateup migrateup_last migratedown migratedown_last sqlc test server
+.PHONY: postgres postgres_cleanup createdb dropdb migrateup migrateup_last migratedown migratedown_last sqlc test server

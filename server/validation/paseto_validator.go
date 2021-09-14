@@ -33,6 +33,7 @@ func (payload *Payload) Valid() error {
 
 type TokenManager interface {
 	CreateToken(username string, email string, duration time.Duration) (string, error)
+	CreateRefreshToken(username string, email string) (string, error)
 	VerifyToken(token string) (*Payload, error)
 }
 
@@ -43,6 +44,14 @@ type PasetoTokenManager struct {
 
 func (tokenManager *PasetoTokenManager) CreateToken(username string, email string, duration time.Duration) (string, error) {
 	payload, err := NewPayload(username, email, duration)
+	if err != nil {
+		return "", err
+	}
+	return tokenManager.paseto.Encrypt(tokenManager.symmetricKey, payload, nil)
+}
+
+func (tokenManager *PasetoTokenManager) CreateRefreshToken(username string, email string) (string, error) {
+	payload, err := NewPayload(username, email, time.Hour*24)
 	if err != nil {
 		return "", err
 	}

@@ -4,8 +4,9 @@ package db
 
 import (
 	"database/sql"
-	"encoding/json"
 	"time"
+
+	"github.com/tabbed/pqtype"
 )
 
 type CommentsLike struct {
@@ -14,11 +15,11 @@ type CommentsLike struct {
 }
 
 type Community struct {
-	ID           int64           `json:"id"`
-	Language     string          `json:"language"`
-	Title        string          `json:"title"`
-	ThumbnailUrl string          `json:"thumbnail_url"`
-	Metadata     json.RawMessage `json:"metadata"`
+	ID           int64                 `json:"id"`
+	Language     string                `json:"language"`
+	Title        string                `json:"title"`
+	ThumbnailUrl string                `json:"thumbnail_url"`
+	Metadata     pqtype.NullRawMessage `json:"metadata"`
 }
 
 type CommunityUser struct {
@@ -37,8 +38,9 @@ type DiscussionComment struct {
 }
 
 type Learning struct {
-	UserID      string `json:"user_id"`
-	Language    string `json:"language"`
+	UserID   string `json:"user_id"`
+	Language string `json:"language"`
+	// B | I | A | N
 	Proficiency string `json:"proficiency"`
 }
 
@@ -70,7 +72,8 @@ type Resource struct {
 	ID  int64  `json:"id"`
 	Url string `json:"url"`
 	// 2 chars language code
-	Language   string `json:"language"`
+	Language string `json:"language"`
+	// B | I | A | N
 	Difficulty string `json:"difficulty"`
 	MediaType  string `json:"media_type"`
 	Category   string `json:"category"`
@@ -96,6 +99,13 @@ type Tag struct {
 	Tag string `json:"tag"`
 }
 
+type Token struct {
+	Token         string       `json:"token"`
+	CreatedAt     time.Time    `json:"created_at"`
+	ExpiredAt     time.Time    `json:"expired_at"`
+	InvalidatedAt sql.NullTime `json:"invalidated_at"`
+}
+
 type Topic struct {
 	ID        int64     `json:"id"`
 	Topic     string    `json:"topic"`
@@ -109,10 +119,11 @@ type User struct {
 	Email             string    `json:"email"`
 	HashedPassword    string    `json:"hashed_password"`
 	PasswordChangedAt time.Time `json:"password_changed_at"`
-	RegistrationDate  time.Time `json:"registration_date"`
+	RegisteredAt      time.Time `json:"registered_at"`
 	// 2 chars language code
 	NativeLanguage string         `json:"native_language"`
 	Role           sql.NullString `json:"role"`
+	AccessToken    sql.NullString `json:"access_token"`
 }
 
 type UserFollow struct {

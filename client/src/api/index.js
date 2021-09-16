@@ -82,13 +82,15 @@ export const createPost = (post) => apiProtected.post("/posts", post);
 
 export const likePost = (postId) => apiProtected.patch(`/posts/${postId}/like`);
 
-export const updatePost = (id, updatedPost) =>
-  apiProtected.patch(`/posts/${id}`, updatedPost);
+export const updatePost = (postId, updatedPost) =>
+  apiProtected.patch(`/posts/${postId}`, updatedPost);
 
-export const deletePost = (id) => apiProtected.delete(`/posts/${id}`);
+export const deletePost = (postId) => apiProtected.delete(`/posts/${postId}`);
+
+export const votePost = (postId, voteData) =>
+  apiProtected.post(`/posts/${postId}/vote`, voteData);
 
 // DISCUSSIONS
-
 export const addDiscussion = (discussionData) => {
   apiProtected.post(`/posts/discussions`, discussionData);
 };
@@ -106,7 +108,6 @@ export const getPostDiscussions = (postId) => {
 };
 
 // COMMENTS
-
 export const addComment = (commentData) => {
   apiProtected.post(`/posts/discussions/comments`, commentData);
 };

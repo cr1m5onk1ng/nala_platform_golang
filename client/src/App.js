@@ -46,9 +46,7 @@ function App() {
 
   return (
     <ThemeProvider theme={tealTheme}>
-      <>
-        <Home darkMode={darkMode} setDarkMode={setDarkMode} />
-      </>
+      <Home darkMode={darkMode} setDarkMode={setDarkMode} />
     </ThemeProvider>
   );
 }

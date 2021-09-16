@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"os"
 	"strconv"
 	"time"
@@ -54,6 +55,19 @@ func (h *Handlers) GetNewPasetoAccessToken(ctx *fiber.Ctx) error {
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusBadRequest, err.Error())
 	}
+
+	user, err := h.Repo.GetUserByEmail(ctx.Context(), tokenReq.Email)
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			return SendFailureResponse(ctx, fiber.StatusForbidden, pqErr.Error())
+		}
+		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
+	}
+
+	if !user.AccessToken.Valid || user.AccessToken.String != tokenReq.Token {
+		return SendFailureResponse(ctx, fiber.StatusForbidden, "invalid token")
+	}
+
 	err = h.Repo.InvalidateToken(ctx.Context(), tokenReq.Token)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
@@ -61,6 +75,7 @@ func (h *Handlers) GetNewPasetoAccessToken(ctx *fiber.Ctx) error {
 		}
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
+
 	newAccessToken, err := h.TokenManager.CreateToken(
 		tokenReq.Username,
 		tokenReq.Email,
@@ -69,10 +84,12 @@ func (h *Handlers) GetNewPasetoAccessToken(ctx *fiber.Ctx) error {
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
+
 	newRefreshToken, err := h.TokenManager.CreateRefreshToken(tokenReq.Username, tokenReq.Email)
 	if err != nil {
 		return SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
+
 	_, err = h.Repo.AddToken(
 		ctx.Context(),
 		db.AddTokenParams{Token: newRefreshToken, ExpiredAt: time.Now().Add(h.Config.PASETO_TOKEN_DURATION)},
@@ -80,6 +97,15 @@ func (h *Handlers) GetNewPasetoAccessToken(ctx *fiber.Ctx) error {
 	if err != nil {
 		SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
 	}
+
+	_, err = h.Repo.UpdateUserToken(ctx.Context(), db.UpdateUserTokenParams{
+		Email:       tokenReq.Email,
+		AccessToken: sql.NullString{String: newRefreshToken, Valid: true},
+	})
+	if err != nil {
+		SendFailureResponse(ctx, fiber.StatusInternalServerError, err.Error())
+	}
+
 	return SendSuccessResponse(
 		ctx,
 		fiber.StatusOK,

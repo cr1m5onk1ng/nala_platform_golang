@@ -17,7 +17,7 @@ func PasetoProtected(tokenManager validation.TokenManager) fiber.Handler {
 			return controllers.SendFailureResponse(
 				ctx,
 				fiber.StatusUnauthorized,
-				"User is not authorized to access the content",
+				"user is not authorized to access the content",
 			)
 		}
 
@@ -29,7 +29,7 @@ func PasetoProtected(tokenManager validation.TokenManager) fiber.Handler {
 			return controllers.SendFailureResponse(
 				ctx,
 				fiber.StatusUnauthorized,
-				"Invalid authorization header format",
+				"invalid authorization header format",
 			)
 		}
 
@@ -39,7 +39,7 @@ func PasetoProtected(tokenManager validation.TokenManager) fiber.Handler {
 			return controllers.SendFailureResponse(
 				ctx,
 				fiber.StatusUnauthorized,
-				"Authorization type not supported",
+				"authorization type not supported",
 			)
 		}
 
@@ -49,7 +49,7 @@ func PasetoProtected(tokenManager validation.TokenManager) fiber.Handler {
 			return controllers.SendFailureResponse(
 				ctx,
 				fiber.StatusForbidden,
-				err.Error(),
+				"token is invalid",
 			)
 		}
 		ctx.Locals(util.AuthPayloadKey, payload)

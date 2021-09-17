@@ -3,15 +3,20 @@ import { React, useState } from "react";
 import {
   Button,
   Container,
+  FormControl,
   FormControlLabel,
   FormLabel,
+  InputLabel,
   makeStyles,
   MenuItem,
   Modal,
   Radio,
   RadioGroup,
+  Select,
+  Snackbar,
   TextField,
 } from "@material-ui/core";
+import MuiAlert from "@material-ui/lab/Alert";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -37,17 +42,28 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Form = ({ isOpen, setOpen, setOpenAlert }) => {
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
+
+const Form = ({ isOpen, setOpen }) => {
   const classes = useStyles();
 
-  const [selectedCheckBok, setSelectedCheckBox] = useState(0);
+  const [selectedCheckBok, setSelectedCheckBox] = useState("Communities");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("Beginner");
+  const [selectedMedia, setSelectedMedia] = useState("Web/Article");
+  const [openAlert, setOpenAlert] = useState(false); // snackbar state
 
-  const onChangeCheckBoxState = (checked, position) => {
-    if (checked) setSelectedCheckBox(position);
+  // taken straight from material-ui
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenAlert(false);
   };
 
   return (
-    <Modal open={isOpen}>
+    <Modal open={isOpen} onClose={() => setOpen(false)}>
       <Container className={classes.container}>
         <form className={classes.form} autoComplete="off">
           <div className={classes.item}>
@@ -73,7 +89,7 @@ const Form = ({ isOpen, setOpen, setOpenAlert }) => {
               id="outlined-multiline-static"
               multiline
               rows={4}
-              defaultValue="Tell fellow learners about this content..."
+              defaultValue="Help your fellow learners by describing the content..."
               variant="outlined"
               label="Description"
               size="small"
@@ -81,7 +97,13 @@ const Form = ({ isOpen, setOpen, setOpenAlert }) => {
             />
           </div>
           <div className={classes.item}>
-            <TextField required select label="Difficulty" value="Public">
+            <TextField
+              select
+              label="Difficulty"
+              value={selectedDifficulty}
+              onChange={(e) => setSelectedDifficulty(e.target.value)}
+              required
+            >
               <MenuItem value="Beginner">Beginner</MenuItem>
               <MenuItem value="Intermediate">Intermediate</MenuItem>
               <MenuItem value="Advanced">Advanced</MenuItem>
@@ -89,49 +111,47 @@ const Form = ({ isOpen, setOpen, setOpenAlert }) => {
             </TextField>
           </div>
           <div className={classes.item}>
-            <TextField required select label="Media" value="Public">
+            <TextField
+              select
+              label="Media"
+              value={selectedMedia}
+              onChange={(e) => setSelectedMedia(e.target.value)}
+              required
+            >
+              <MenuItem value="Web/Article">Web/Article</MenuItem>
               <MenuItem value="Video">Video</MenuItem>
               <MenuItem value="Movie/Series">Movie/Series</MenuItem>
-              <MenuItem value="Music/Podcast">Music/Podcast</MenuItem>
-              <MenuItem value="Web/Article">Web/Article</MenuItem>
+              <MenuItem value="Podcast/Music">Podcast/Music</MenuItem>
+              <MenuItem value="Video">Video</MenuItem>
             </TextField>
           </div>
           <div className={classes.item}>
             <FormLabel component="legend">Share with</FormLabel>
-            <RadioGroup>
+            <RadioGroup
+              value={selectedCheckBok}
+              onChange={(e) => setSelectedCheckBox(e.target.value)}
+            >
               <FormControlLabel
-                value="My Communities"
+                value="Communities"
                 control={<Radio size="small" />}
-                label="My Communities"
-                onChange={(event) =>
-                  onChangeCheckBoxState(event.target.checked, 0)
-                }
-                checked={selectedCheckBok == 0}
+                label="Communities"
               />
               <FormControlLabel
-                value="My Followers"
+                value="Followers"
                 control={<Radio size="small" />}
-                label="My Followers"
-                onChange={(event) =>
-                  onChangeCheckBoxState(event.target.checked, 1)
-                }
-                checked={selectedCheckBok == 1}
+                label="Followers"
               />
               <FormControlLabel
                 value="Nobody"
                 control={<Radio size="small" />}
                 label="Nobody"
-                onChange={(event) =>
-                  onChangeCheckBoxState(event.target.checked, 2)
-                }
-                checked={selectedCheckBok == 2}
               />
             </RadioGroup>
           </div>
           <div className={classes.item}>
             <Button
               variant="outlined"
-              color="inherit"
+              color="primary"
               style={{ marginRight: 20 }}
               onClick={() => setOpenAlert(true)}
             >
@@ -146,6 +166,16 @@ const Form = ({ isOpen, setOpen, setOpenAlert }) => {
             </Button>
           </div>
         </form>
+        <Snackbar
+          open={openAlert}
+          autoHideDuration={4000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        >
+          <Alert onClose={handleSnackbarClose} severity="success">
+            Post addedd succefully
+          </Alert>
+        </Snackbar>
       </Container>
     </Modal>
   );

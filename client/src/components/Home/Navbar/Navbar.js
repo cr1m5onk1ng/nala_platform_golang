@@ -11,7 +11,13 @@ import {
   Snackbar,
   IconButton,
 } from "@material-ui/core";
-import { Cancel, Mail, Notifications, Search, Add } from "@material-ui/icons";
+import {
+  Cancel,
+  Notifications,
+  Search,
+  Add,
+  AddOutlined,
+} from "@material-ui/icons";
 import { useState } from "react";
 import MuiAlert from "@material-ui/lab/Alert";
 import Form from "./Form/Form";
@@ -20,21 +26,21 @@ const useStyles = makeStyles((theme) => ({
   toolbar: {
     display: "flex",
     justifyContent: "space-between",
-    [theme.breakpoints.up("sm")]: {
-      marginRight: theme.spacing(20),
-    },
+
     [theme.breakpoints.up("md")]: {
       marginRight: theme.spacing(0),
     },
   },
   logoLg: {
     display: "none",
+    marginLeft: theme.spacing(3),
     [theme.breakpoints.up("sm")]: {
       display: "block",
     },
   },
   logoSm: {
     display: "block",
+    marginLeft: theme.spacing(3),
     [theme.breakpoints.up("sm")]: {
       display: "none",
     },
@@ -55,7 +61,7 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   input: {
-    color: "white",
+    color: theme.palette.secondary.main,
     marginLeft: theme.spacing(1),
   },
   cancel: {
@@ -64,10 +70,14 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   searchButton: {
-    marginRight: theme.spacing(2),
+    marginRight: theme.spacing(5),
+
     [theme.breakpoints.up("sm")]: {
       display: "none",
     },
+  },
+  searchIcon: {
+    margin: theme.spacing(2),
   },
   icons: {
     alignItems: "center",
@@ -85,6 +95,10 @@ const useStyles = makeStyles((theme) => ({
       display: "none",
     },
     marginRight: theme.spacing(3),
+    height: "30px",
+    width: "30px",
+    border: "1px solid",
+    borderColor: theme.palette.secondary,
   },
   badge: {
     marginRight: theme.spacing(3),
@@ -94,23 +108,10 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function Alert(props) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
-
 const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false); // search bar state
   const [formOpen, setFormOpen] = useState(false); // add post form state
-  const [openAlert, setOpenAlert] = useState(false); // snackbar state
   const classes = useStyles({ searchOpen });
-
-  // taken straight from material-ui
-  const handleSnackbarClose = (event, reason) => {
-    if (reason === "clickaway") {
-      return;
-    }
-    setOpenAlert(false);
-  };
 
   return (
     <AppBar position="fixed">
@@ -122,7 +123,7 @@ const Navbar = () => {
           NALA
         </Typography>
         <div className={classes.search}>
-          <Search />
+          <Search className={classes.searchIcon} />
           <InputBase placeholder="Search..." className={classes.input} />
           <Cancel
             className={classes.cancel}
@@ -149,7 +150,7 @@ const Navbar = () => {
             color="inherit"
             aria-label="add post"
           >
-            <Add />
+            <AddOutlined />
           </IconButton>
           <IconButton onClick={() => {}}>
             <Badge badgeContent={2} color="secondary" className={classes.badge}>
@@ -161,21 +162,7 @@ const Navbar = () => {
           </IconButton>
         </div>
       </Toolbar>
-      <Form
-        isOpen={formOpen}
-        setOpen={setFormOpen}
-        setOpenAlert={setOpenAlert}
-      />
-      <Snackbar
-        open={openAlert}
-        autoHideDuration={4000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-      >
-        <Alert onClose={handleSnackbarClose} severity="success">
-          Post addedd succefully
-        </Alert>
-      </Snackbar>
+      <Form isOpen={formOpen} setOpen={setFormOpen} />
     </AppBar>
   );
 };

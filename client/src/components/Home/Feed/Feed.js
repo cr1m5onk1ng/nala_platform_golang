@@ -21,8 +21,7 @@ const useStyles = makeStyles((theme) => ({
       marginLeft: "25%",
       marginRight: "25%",
     },
-    [theme.breakpoints.down("xs")]: {
-      paddingTop: theme.spacing(10),
+    [theme.breakpoints.down("md")]: {
       paddingLeft: theme.spacing(0),
       paddingRight: theme.spacing(0),
     },
@@ -48,6 +47,7 @@ const Feed = () => {
             mediumCount={post.mediumCount}
             advancedCount={post.advancedCount}
             nativeCount={post.nativeCount}
+            commentsCount={post.commentsCount}
           />
         ))}
       </div>

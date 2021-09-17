@@ -31,17 +31,17 @@ export const leftbarMediaIcons = [
   },
   {
     icon: Language,
-    title: "Web Articles",
+    title: "Web/\nArticles",
     color: blue[400],
   },
   {
     icon: Radio,
-    title: "Music /\nPodcasts",
+    title: "Music/\nPodcasts",
     color: green[400],
   },
   {
     icon: Movie,
-    title: "Movies /\nSeries",
+    title: "Movies/\nSeries",
     color: blueGrey[400],
   },
 ];
@@ -73,6 +73,7 @@ export const posts = [
     mediumCount: "250",
     advancedCount: "11",
     nativeCount: "0",
+    commentsCount: 150,
   },
   {
     title: "Best youtube video ever",
@@ -88,6 +89,7 @@ export const posts = [
     mediumCount: "250",
     advancedCount: "11",
     nativeCount: "0",
+    commentsCount: 120,
   },
   {
     title: "Best youtube video ever",
@@ -103,6 +105,7 @@ export const posts = [
     mediumCount: "250",
     advancedCount: "11",
     nativeCount: "0",
+    commentsCount: 120,
   },
   {
     title: "Best youtube video ever",
@@ -118,6 +121,7 @@ export const posts = [
     mediumCount: "250",
     advancedCount: "11",
     nativeCount: "0",
+    commentsCount: 120,
   },
   {
     title: "Best youtube video ever",
@@ -133,6 +137,7 @@ export const posts = [
     mediumCount: "250",
     advancedCount: "11",
     nativeCount: "0",
+    commentsCount: 120,
   },
   {
     title: "Best youtube video ever",
@@ -148,6 +153,7 @@ export const posts = [
     mediumCount: "250",
     advancedCount: "11",
     nativeCount: "0",
+    commentsCount: 120,
   },
   {
     title: "Best youtube video ever",
@@ -163,6 +169,7 @@ export const posts = [
     mediumCount: "250",
     advancedCount: "11",
     nativeCount: "0",
+    commentsCount: 120,
   },
   {
     title: "Best youtube video ever",
@@ -178,6 +185,7 @@ export const posts = [
     mediumCount: "250",
     advancedCount: "11",
     nativeCount: "0",
+    commentsCount: 120,
   },
   {
     title: "Best youtube video ever",
@@ -193,6 +201,23 @@ export const posts = [
     mediumCount: "250",
     advancedCount: "11",
     nativeCount: "0",
+    commentsCount: 120,
+  },
+  {
+    title: "Best youtube video ever",
+    mediaType: "Video",
+    description:
+      "whatever a description may look like. Something like this video is so cool bruh you sould watch it",
+    url: "https://www.google.com",
+    creationTime: Date.now(),
+    imageUrl: undefined,
+    username: "cr1m5onk1ng",
+    likesCount: "500",
+    easyCount: "120",
+    mediumCount: "250",
+    advancedCount: "11",
+    nativeCount: "0",
+    commentsCount: 120,
   },
 ];
 
@@ -297,4 +322,38 @@ export const members = [
   },
 ];
 
-const sidebarIcons = [];
+export const communitiesDiscussions = [
+  {
+    user: "cr1m5onk1ng",
+    community: {
+      title: "en",
+      thumbnail:
+        "https://freesvg.org/img/tobias-Flag-of-the-United-Kingdom.png",
+    },
+    title:
+      "Did you ever felt like you couldn't do it anymore and just abandoned the idea of keep improving in a language?",
+    numComments: 112,
+  },
+  {
+    user: "v1tal1k",
+    community: {
+      title: "en",
+      thumbnail:
+        "https://upload.wikimedia.org/wikipedia/commons/1/1d/Flag_of_France_%28bordered%29.svg",
+    },
+    title:
+      "What about with implement zero knolwdge proofs for language learning?",
+    numComments: 115,
+  },
+  {
+    user: "satoshi",
+    community: {
+      title: "en",
+      thumbnail:
+        "https://cdn.pixabay.com/photo/2012/04/13/12/23/flag-32177_1280.png",
+    },
+    title:
+      "Is learning about culture important for you when you start learning a new language?",
+    numComments: 57,
+  },
+];

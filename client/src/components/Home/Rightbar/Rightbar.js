@@ -12,7 +12,13 @@ import {
   IconButton,
 } from "@material-ui/core";
 import { AvatarGroup } from "@material-ui/lab";
-import { communities, members } from "../../../constants/mockData";
+import Communities from "./Communities/Communities";
+import Discussions from "./Discussions/Discussions";
+import {
+  communities,
+  members,
+  communitiesDiscussions,
+} from "../../../constants/mockData";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -23,7 +29,7 @@ const useStyles = makeStyles((theme) => ({
   rightbarContainer: {
     paddingTop: theme.spacing(10),
     [theme.breakpoints.up("md")]: {
-      paddingRight: theme.spacing(50),
+      paddingRight: theme.spacing(10),
     },
   },
   title: {
@@ -39,52 +45,18 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: 20,
     paddingBottom: theme.spacing(5),
   },
-  communitiesContainer: {
-    paddingBottom: theme.spacing(5),
+  discussionsTitle: {
+    [theme.breakpoints.down("md")]: {
+      display: "none",
+    },
   },
   badge: {
     margin: theme.spacing(3),
-  },
-  img: {
-    width: theme.spacing(10),
-    height: theme.spacing(10),
-    border: "1px solid lightgray",
   },
 }));
 
 const Rightbar = () => {
   const classes = useStyles();
-
-  const Community = ({ title, thumbnail, members, onClick }) => {
-    return (
-      <IconButton onClick={onClick}>
-        <Badge
-          className={classes.badge}
-          badgeContent={members}
-          max={10000}
-          color="secondary"
-        >
-          <Avatar className={classes.img} alt={title} src={thumbnail} />
-        </Badge>
-      </IconButton>
-    );
-  };
-
-  const Communities = ({ communities }) => {
-    return (
-      <Grid container className={classes.communitiesContainer}>
-        {communities.map((com) => (
-          <Grid item xs={12} sm={6} md={4}>
-            <Community
-              title={com.title}
-              thumbnail={com.thumbnail}
-              members={com.members}
-            />
-          </Grid>
-        ))}
-      </Grid>
-    );
-  };
 
   const Members = ({ members }) => {
     return (
@@ -111,6 +83,15 @@ const Rightbar = () => {
           Communities
         </Typography>
         <Communities communities={communities} />
+        <Typography
+          className={classes.discussionsTitle}
+          variant="h5"
+          className={classes.title}
+          gutterBottom
+        >
+          Top Discussions
+        </Typography>
+        <Discussions discussions={communitiesDiscussions} />
         <Typography variant="h5" className={classes.title} gutterBottom>
           Categories
         </Typography>

@@ -21,6 +21,9 @@ function App() {
       background: {
         main: "#e3e3e3",
       },
+      hoverColor: {
+        main: "#F6F5F7",
+      },
       contrastThreshold: 3,
       tonalOffset: 0.2,
     },

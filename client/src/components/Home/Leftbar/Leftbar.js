@@ -10,7 +10,7 @@ const useStyles = makeStyles((theme) => ({
     height: "100vh",
     color: "white",
     paddingTop: theme.spacing(10),
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor: "white",
     position: "sticky",
     top: 0,
     [theme.breakpoints.up("sm")]: {
@@ -37,7 +37,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing(4),
     padding: theme.spacing(2),
     "&:hover": {
-      background: "lightgray",
+      background: theme.palette.hoverColor.main,
     },
     [theme.breakpoints.up("sm")]: {
       marginBottom: theme.spacing(3),
@@ -54,6 +54,7 @@ const useStyles = makeStyles((theme) => ({
     },
     [theme.breakpoints.down("sm")]: {
       marginLeft: theme.spacing(0),
+      color: theme.palette.secondary.dark,
     },
   },
   text: {

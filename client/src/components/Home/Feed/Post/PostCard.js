@@ -6,7 +6,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 import ShareIcon from "@material-ui/icons/Share";
 import ReactTimeAgo from "react-time-ago";
-import LinkIcon from "@material-ui/icons/Link";
+import { Link as LinkIcon, ChatBubbleOutline, Star } from "@material-ui/icons";
 import CardActionArea from "@material-ui/core/CardActionArea";
 import PropTypes from "prop-types";
 import { Rating } from "@material-ui/lab";
@@ -15,50 +15,19 @@ import SentimentDissatisfiedIcon from "@material-ui/icons/SentimentDissatisfied"
 import SentimentSatisfiedIcon from "@material-ui/icons/SentimentSatisfied";
 import SentimentSatisfiedAltIcon from "@material-ui/icons/SentimentSatisfiedAltOutlined";
 import SentimentVerySatisfiedIcon from "@material-ui/icons/SentimentVerySatisfied";
-import { CardHeader, makeStyles } from "@material-ui/core";
+import { CardHeader, makeStyles, Box } from "@material-ui/core";
 import { red, blue, green, blueGrey } from "@material-ui/core/colors";
-
-const customIcons = {
-  1: {
-    icon: <SentimentVeryDissatisfiedIcon />,
-    label: "Very Dissatisfied",
-  },
-  2: {
-    icon: <SentimentDissatisfiedIcon />,
-    label: "Dissatisfied",
-  },
-  3: {
-    icon: <SentimentSatisfiedIcon />,
-    label: "Neutral",
-  },
-  4: {
-    icon: <SentimentSatisfiedAltIcon />,
-    label: "Satisfied",
-  },
-  5: {
-    icon: <SentimentVerySatisfiedIcon />,
-    label: "Very Satisfied",
-  },
-};
-
-const IconContainer = (props) => {
-  const { value, ...other } = props;
-  return <span {...other}>{customIcons[value].icon}</span>;
-};
-
-IconContainer.propTypes = {
-  value: PropTypes.number.isRequired,
-};
+import FunRatingBar from "./FunRatingBar";
+import DifficultyRatingBar from "./DifficultyRatingBar";
 
 const useStyles = makeStyles((theme) => ({
   cardContainer: {
     display: "flex",
     flexDirection: "column",
     borderRadius: 12,
-    maxWidth: "500px",
     padding: theme.spacing(3),
     marginBottom: theme.spacing(5),
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down("dm")]: {
       padding: theme.spacing(0),
       borderRadius: 0,
     },
@@ -98,19 +67,18 @@ const useStyles = makeStyles((theme) => ({
   userRow: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "start",
     marginTop: theme.spacing(1),
   },
   userRow__content: {
     margin: theme.spacing(2),
   },
-  username: {
-    fontSize: "16px",
-  },
-  customDifficultiesRow: {
+  buttonRow: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
+    margin: theme.spacing(1),
+  },
+  username: {
+    fontSize: "16px",
   },
   customTag: {
     display: "flex",
@@ -175,6 +143,7 @@ export default function PostCard({
   mediumCount,
   advancedCount,
   nativeCount,
+  commentsCount,
 }) {
   const classes = useStyles();
 
@@ -200,25 +169,18 @@ export default function PostCard({
     );
   };
 
-  const buttonsRow = () => {
+  const buttonsRow = (commentsCount) => {
     return (
       <div className={classes.buttonsContainer}>
+        <div className={classes.buttonRow}>
+          <IconButton onClick={() => {}}>
+            <ChatBubbleOutline />
+          </IconButton>
+          <Typography variant="body2">{commentsCount} comments</Typography>
+        </div>
         <IconButton className={classes.button}>
           <LinkIcon />
         </IconButton>
-      </div>
-    );
-  };
-
-  const difficultiesRow = () => {
-    return (
-      <div className={classes.customDifficultiesRow}>
-        <Rating
-          name="difficulty"
-          defaultValue={2}
-          IconContainerComponent={IconContainer}
-          highlightSelectedOnly
-        />
       </div>
     );
   };
@@ -272,8 +234,9 @@ export default function PostCard({
           {description}
         </Typography>
       </CardContent>
-      {difficultiesRow()}
-      {buttonsRow()}
+      <FunRatingBar />
+      <DifficultyRatingBar />
+      {buttonsRow(commentsCount)}
     </Card>
   );
 }

@@ -6,7 +6,7 @@ import Rightbar from "./Rightbar/Rightbar";
 
 const useStyles = makeStyles((theme) => ({
   right: {
-    [theme.breakpoints.down("xs")]: {
+    [theme.breakpoints.down("md")]: {
       display: "none",
     },
   },
@@ -21,10 +21,10 @@ const Home = ({ darkMode, setDarkMode }) => {
         <Grid item sm={2} xs={2}>
           <Leftbar />
         </Grid>
-        <Grid item sm={7} xs={10}>
+        <Grid item sm={7} xs={10} sm={10} md={10} lg={7} xl={7}>
           <Feed />
         </Grid>
-        <Grid item sm={3} className={classes.right}>
+        <Grid item sm={3} lg={3} xl={3} className={classes.right}>
           <Rightbar />
         </Grid>
       </Grid>
